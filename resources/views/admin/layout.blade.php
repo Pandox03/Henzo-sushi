@@ -46,6 +46,10 @@
                                    class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 {{ request()->routeIs('admin.orders*') ? 'border-blue-500 text-gray-900' : '' }}">
                                     📋 Orders
                                 </a>
+                                <a href="{{ route('admin.schedules') }}" 
+                                   class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 {{ request()->routeIs('admin.schedules*') ? 'border-blue-500 text-gray-900' : '' }}">
+                                    📅 Schedule
+                                </a>
                                 <a href="{{ route('admin.settings') }}" 
                                    class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 {{ request()->routeIs('admin.settings*') ? 'border-blue-500 text-gray-900' : '' }}">
                                     ⚙️ Settings
@@ -81,4 +85,5 @@
         </div>
     </body>
 </html>
+
 

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Schedule;
+use Carbon\Carbon;
 
 class HomeController extends Controller
 {
@@ -13,6 +15,11 @@ class HomeController extends Controller
         $categories = Category::with('products')->where('is_active', true)->orderBy('sort_order')->get();
         $featuredProducts = Product::where('is_available', true)->inRandomOrder()->limit(6)->get();
         
-        return view('home', compact('categories', 'featuredProducts'));
+        // Get schedule status
+        $isOpen = Schedule::isOpenNow();
+        $currentSchedule = Schedule::getScheduleForDate(Carbon::now());
+        $nextOpening = Schedule::getNextOpeningTime();
+        
+        return view('home', compact('categories', 'featuredProducts', 'isOpen', 'currentSchedule', 'nextOpening'));
     }
 }

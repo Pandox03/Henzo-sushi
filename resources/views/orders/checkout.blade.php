@@ -1,3 +1,10 @@
+@php
+    use App\Models\Schedule;
+    use Carbon\Carbon;
+    $isOpen = Schedule::isOpenNow();
+    $nextOpening = Schedule::getNextOpeningTime();
+@endphp
+
 <x-app-layout>
     <div class="min-h-screen bg-gray-50 py-8">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -6,6 +13,28 @@
                 <h1 class="text-3xl font-bold text-gray-900">Checkout</h1>
                 <p class="mt-2 text-gray-600">Complete your order details</p>
             </div>
+
+            <!-- Closed Notice -->
+            @if(!$isOpen)
+                <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <span class="text-2xl">🔴</span>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-lg font-semibold text-red-800">We're Currently Closed</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <p>We're sorry, but we cannot accept orders while we're closed.</p>
+                                @if($nextOpening)
+                                    <p class="mt-1"><strong>We will reopen on {{ $nextOpening->format('F d, Y') }} at {{ $nextOpening->format('g:i A') }}.</strong></p>
+                                @else
+                                    <p class="mt-1">Please check back later.</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Order Summary -->
@@ -154,13 +183,24 @@
 
                         <!-- Submit Button -->
                         <div class="pt-4">
-                            <button 
-                                type="submit" 
-                                class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
-                            >
-                                <span class="mr-2">🍣</span>
-                                Confirm My Order
-                            </button>
+                            @if($isOpen)
+                                <button 
+                                    type="submit" 
+                                    class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                                >
+                                    <span class="mr-2">🍣</span>
+                                    Confirm My Order
+                                </button>
+                            @else
+                                <button 
+                                    type="button" 
+                                    disabled
+                                    class="w-full bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg cursor-not-allowed flex items-center justify-center opacity-60"
+                                >
+                                    <span class="mr-2">🔴</span>
+                                    Restaurant is Closed
+                                </button>
+                            @endif
                         </div>
                     </form>
                 </div>

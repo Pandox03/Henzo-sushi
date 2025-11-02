@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Schedule;
+use App\Models\PromoCode;
+use App\Models\PromoCodeUsage;
 use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
@@ -24,16 +27,27 @@ class CartController extends Controller
         foreach ($cart as $id => $details) {
             $product = Product::find($id);
             if ($product) {
+                // Use discounted price if discount is valid
+                $itemPrice = $product->isDiscountValid() ? $product->discounted_price : $product->price;
+                $itemTotal = $details['quantity'] * $itemPrice;
+                
                 $cartItems[] = [
                     'product' => $product,
                     'quantity' => $details['quantity'],
-                    'total' => $details['quantity'] * $product->price
+                    'total' => $itemTotal,
+                    'original_price' => $product->price,
+                    'discounted_price' => $product->isDiscountValid() ? $product->discounted_price : null,
+                    'discount_amount' => $product->isDiscountValid() ? $product->discount_amount : 0,
                 ];
-                $total += $details['quantity'] * $product->price;
+                $total += $itemTotal;
             }
         }
 
-        return view('cart.index', compact('cartItems', 'total'));
+        // Get schedule status
+        $isOpen = Schedule::isOpenNow();
+        $nextOpening = Schedule::getNextOpeningTime();
+
+        return view('cart.index', compact('cartItems', 'total', 'isOpen', 'nextOpening'));
     }
 
     public function add(Request $request)
@@ -48,12 +62,20 @@ class CartController extends Controller
 
         $cart = session('cart', []);
         
+        // Use discounted price if discount is valid
+        $itemPrice = $product->isDiscountValid() ? $product->discounted_price : $product->price;
+        
         if (isset($cart[$productId])) {
             $cart[$productId]['quantity'] += $quantity;
+            // Update price in case discount changed
+            $cart[$productId]['price'] = $itemPrice;
         } else {
             $cart[$productId] = [
                 'name' => $product->name,
-                'price' => $product->price,
+                'price' => $itemPrice,
+                'original_price' => $product->price,
+                'discounted_price' => $product->isDiscountValid() ? $product->discounted_price : null,
+                'has_discount' => $product->isDiscountValid(),
                 'quantity' => $quantity,
                 'image' => $product->image
             ];
@@ -132,7 +154,7 @@ class CartController extends Controller
      */
     public function applyPromo(Request $request)
     {
-        $promoCode = $request->input('promo_code');
+        $promoCodeString = strtoupper(trim($request->input('promo_code')));
         $user = Auth::user();
         
         if (!$user) {
@@ -142,81 +164,118 @@ class CartController extends Controller
             ], 401);
         }
 
-        // Get user's completed orders count
-        $orderCount = $user->orders()->where('status', 'delivered')->count();
+        // Find promo code in database
+        $promoCode = PromoCode::where('code', $promoCodeString)->first();
         
-        // Define promo codes with their conditions
-        $validPromoCodes = [
-            'WELCOME' => [
-                'discount' => 15,
-                'min_orders' => 0,
-                'max_orders' => 0, // Only for first order
-                'message' => 'Welcome discount applied! 15% off your first order.',
-                'error' => 'Welcome promo code is only valid for first-time customers.'
-            ],
-            'SUSHI10' => [
-                'discount' => 10,
-                'min_orders' => 10,
-                'max_orders' => 19, // Between 10 and 19 orders
-                'message' => 'Loyalty discount applied! 10% off your order.',
-                'error' => 'This promo code requires 10-19 completed orders. Your orders: ' . $orderCount
-            ],
-            'SUSHI20' => [
-                'discount' => 20,
-                'min_orders' => 20, // 20+ orders
-                'max_orders' => PHP_INT_MAX,
-                'message' => 'VIP discount applied! 20% off your order.',
-                'error' => 'This promo code requires 20+ completed orders. Your orders: ' . $orderCount
-            ]
-        ];
-
-        $promoCode = strtoupper(trim($promoCode));
-        
-        if (!array_key_exists($promoCode, $validPromoCodes)) {
+        if (!$promoCode) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid promo code. Please check and try again.'
-            ], 422);
+                'message' => 'Invalid promo code.'
+            ], 400);
         }
-        
-        $promo = $validPromoCodes[$promoCode];
-        
-        // Check if user meets the order requirements
-        if ($orderCount >= $promo['min_orders'] && $orderCount <= $promo['max_orders']) {
-            // For WELCOME code, make sure it's the first order
-            if ($promoCode === 'WELCOME' && $orderCount > 0) {
+
+        // Check if promo code is valid
+        if (!$promoCode->isValid()) {
+            if (!$promoCode->is_active) {
                 return response()->json([
                     'success' => false,
-                    'message' => $promo['error']
-                ], 422);
+                    'message' => 'This promo code is not active.'
+                ], 400);
             }
             
-            // Check if promo code is already in session
-            if (session('promo_code') === $promoCode) {
+            if ($promoCode->expires_at && $promoCode->expires_at->isPast()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'This promo code is already applied.'
-                ], 422);
+                    'message' => 'This promo code has expired.'
+                ], 400);
             }
-            
-            // Store the promo code and discount percentage in the session
-            session([
-                'promo_code' => $promoCode,
-                'discount_percent' => $promo['discount']
-            ]);
-            
+
+            if ($promoCode->total_usage_limit) {
+                $currentUsage = $promoCode->usages()->count();
+                if ($currentUsage >= $promoCode->total_usage_limit) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This promo code has reached its usage limit.'
+                    ], 400);
+                }
+            }
+
             return response()->json([
-                'success' => true,
-                'message' => $promo['message'],
-                'discount_percent' => $promo['discount']
-            ]);
+                'success' => false,
+                'message' => 'This promo code is not valid.'
+            ], 400);
         }
+
+        // Get cart total
+        $cart = session('cart', []);
+        $cartItems = [];
+        $total = 0;
+
+        foreach ($cart as $id => $details) {
+            $product = Product::find($id);
+            if ($product) {
+                // Use discounted price if discount is valid
+                $itemPrice = $product->isDiscountValid() ? $product->discounted_price : $product->price;
+                $itemTotal = $details['quantity'] * $itemPrice;
+                
+                $cartItems[] = [
+                    'product' => $product,
+                    'quantity' => $details['quantity'],
+                    'total' => $itemTotal,
+                ];
+                $total += $itemTotal;
+            }
+        }
+
+        // Check if user can use this promo code
+        if (!$promoCode->canBeUsedByUser($user->id, $total)) {
+            $userUsageCount = $promoCode->usages()->where('user_id', $user->id)->count();
+            
+            if ($promoCode->minimum_order_amount && $total < $promoCode->minimum_order_amount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Minimum order amount of ' . number_format($promoCode->minimum_order_amount, 2) . ' MAD required.'
+                ], 400);
+            }
+
+            if ($userUsageCount >= $promoCode->usage_limit_per_user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You have reached the maximum usage limit for this promo code.'
+                ], 400);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot use this promo code.'
+            ], 400);
+        }
+
+        // Calculate discount
+        $discountAmount = $promoCode->calculateDiscount($total, $cartItems);
         
-        // User doesn't meet the order requirements
+        // Store promo code in session
+        session([
+            'promo_code' => $promoCode->code,
+            'promo_code_id' => $promoCode->id,
+            'discount_amount' => $discountAmount,
+            'discount_percent' => $promoCode->discount_type === 'percentage' ? $promoCode->discount_value : null
+        ]);
+
+        $message = 'Promo code applied successfully! ';
+        if ($promoCode->discount_type === 'percentage') {
+            $message .= $promoCode->discount_value . '% off';
+        } else {
+            $message .= number_format($promoCode->discount_value, 2) . ' MAD off';
+        }
+        $message .= ' applied.';
+
         return response()->json([
-            'success' => false,
-            'message' => $promo['error']
-        ], 422);
+            'success' => true,
+            'message' => $message,
+            'discount_amount' => $discountAmount,
+            'discount_percent' => $promoCode->discount_type === 'percentage' ? $promoCode->discount_value : null
+        ]);
     }
     
     /**
@@ -224,7 +283,7 @@ class CartController extends Controller
      */
     public function removePromo()
     {
-        session()->forget(['promo_code', 'discount_percent']);
+        session()->forget(['promo_code', 'promo_code_id', 'discount_amount', 'discount_percent']);
         
         return response()->json([
             'success' => true,

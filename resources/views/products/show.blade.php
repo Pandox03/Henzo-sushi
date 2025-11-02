@@ -11,6 +11,15 @@
             <div class="product-detail-grid">
                 <!-- Product Image -->
                 <div class="product-image-container">
+                    @if($product->has_discount && $product->isDiscountValid())
+                        <div class="discount-badge">
+                            @if($product->discount_type === 'percentage')
+                                -{{ $product->discount_value }}% OFF
+                            @else
+                                -{{ number_format($product->discount_value, 0) }} MAD OFF
+                            @endif
+                        </div>
+                    @endif
                     <img src="{{ $product->image ?: 'https://images.unsplash.com/photo-' . (['1544551763-46a013bb2dcc', '1551218808-94e220e084d2', '1565299624946-b28f40c0fe4b', '1571019613454-1cb2f99b2d8b', '1578662996442-48f60103fc96', '1586190848861-99aa4bd1711f'][$product->id % 6]) . '?w=600&h=400&fit=crop&crop=center' }}" 
                          alt="{{ $product->name }}" 
                          class="product-main-image">
@@ -62,8 +71,16 @@
                     <!-- Price and Time -->
                     <div class="price-time-section">
                         <div class="price-container">
-                            <span class="product-price">${{ number_format($product->price, 2) }}</span>
-                            <span class="price-label">per serving</span>
+                            @if($product->has_discount && $product->isDiscountValid())
+                                <div class="product-price">
+                                    <span class="text-red-500 line-through text-sm">${{ number_format($product->price, 2) }}</span>
+                                    <span class="text-green-600 font-bold text-2xl">${{ number_format($product->discounted_price, 2) }}</span>
+                                </div>
+                                <span class="price-label">per serving</span>
+                            @else
+                                <span class="product-price">${{ number_format($product->price, 2) }}</span>
+                                <span class="price-label">per serving</span>
+                            @endif
                         </div>
                         <div class="time-container">
                             <span class="preparation-time">⏱️ {{ $product->preparation_time }} minutes</span>
@@ -78,7 +95,7 @@
                             <button class="quantity-btn" onclick="increaseQuantity()">+</button>
                         </div>
                         <button class="add-to-cart-btn" onclick="addToCart()">
-                            Add to Cart - $<span id="total-price">{{ number_format($product->price, 2) }}</span>
+                            Add to Cart - $<span id="total-price">{{ number_format($product->has_discount && $product->isDiscountValid() ? $product->discounted_price : $product->price, 2) }}</span>
                         </button>
                     </div>
                 </div>
@@ -95,13 +112,29 @@
                 @foreach($relatedProducts as $relatedProduct)
                 <div class="related-product-card">
                     <div class="related-product-image">
+                        @if($relatedProduct->has_discount && $relatedProduct->isDiscountValid())
+                            <div class="discount-badge">
+                                @if($relatedProduct->discount_type === 'percentage')
+                                    -{{ $relatedProduct->discount_value }}% OFF
+                                @else
+                                    -{{ number_format($relatedProduct->discount_value, 0) }} MAD OFF
+                                @endif
+                            </div>
+                        @endif
                         <img src="{{ $relatedProduct->image ?: 'https://images.unsplash.com/photo-' . (['1544551763-46a013bb2dcc', '1551218808-94e220e084d2', '1565299624946-b28f40c0fe4b', '1571019613454-1cb2f99b2d8b', '1578662996442-48f60103fc96', '1586190848861-99aa4bd1711f'][$relatedProduct->id % 6]) . '?w=300&h=200&fit=crop&crop=center' }}" 
                              alt="{{ $relatedProduct->name }}" 
                              loading="lazy">
                     </div>
                     <div class="related-product-info">
                         <h4 class="related-product-title">{{ $relatedProduct->name }}</h4>
-                        <p class="related-product-price">${{ number_format($relatedProduct->price, 2) }}</p>
+                        <div class="related-product-price">
+                            @if($relatedProduct->has_discount && $relatedProduct->isDiscountValid())
+                                <span class="text-red-500 line-through text-xs">${{ number_format($relatedProduct->price, 2) }}</span>
+                                <span class="text-green-600 font-bold">${{ number_format($relatedProduct->discounted_price, 2) }}</span>
+                            @else
+                                <span>${{ number_format($relatedProduct->price, 2) }}</span>
+                            @endif
+                        </div>
                         <a href="{{ route('products.show', $relatedProduct) }}" class="view-related-btn">View Details</a>
                     </div>
                 </div>
@@ -127,6 +160,30 @@
 
         .product-image-container {
             position: relative;
+        }
+
+        .discount-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
         }
 
         .product-main-image {
@@ -336,11 +393,29 @@
             font-weight: 600;
         }
 
+        .related-product-image {
+            position: relative;
+        }
+
         .related-product-price {
             color: #d4af37;
             font-weight: 700;
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .related-product-price .line-through {
+            color: #95a5a6;
+            font-size: 0.85rem;
+            text-decoration: line-through;
+        }
+
+        .related-product-price .font-bold {
+            color: #27ae60;
+            font-size: 1.1rem;
         }
 
         .view-related-btn {
@@ -384,7 +459,7 @@
 
     <script>
         let quantity = 1;
-        const basePrice = {{ $product->price }};
+        const basePrice = {{ $product->has_discount && $product->isDiscountValid() ? $product->discounted_price : $product->price }};
 
         function increaseQuantity() {
             quantity++;

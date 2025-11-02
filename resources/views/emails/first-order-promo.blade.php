@@ -1,9 +1,9 @@
 <x-mail::message>
-# Welcome to {{ config('app.name') }}!
+# Welcome to {{ config('app.name') }}! 🎉
 
-Thank you for your first order with us! We're excited to have you as our customer.
+Thank you for joining us! We're excited to have you as our customer and can't wait to serve you delicious sushi.
 
-As a token of our appreciation, here's a special welcome discount for your next order:
+As a welcome gift, here's a special discount code for your first order:
 
 <x-mail::panel>
     Promo Code: **WELCOME**

@@ -22,6 +22,7 @@ class SampleDataSeeder extends Seeder
             'email' => 'admin@henzosushi.com',
             'password' => Hash::make('password'),
             'phone' => '+1234567890',
+            'email_verified_at' => now(), // Admin users don't need OTP
         ]);
         $admin->assignRole('admin');
 
@@ -30,6 +31,7 @@ class SampleDataSeeder extends Seeder
             'email' => 'chef@henzosushi.com',
             'password' => Hash::make('password'),
             'phone' => '+1234567891',
+            'email_verified_at' => now(), // Chef users don't need OTP
         ]);
         $chef->assignRole('chef');
 
@@ -38,6 +40,7 @@ class SampleDataSeeder extends Seeder
             'email' => 'delivery@henzosushi.com',
             'password' => Hash::make('password'),
             'phone' => '+1234567892',
+            'email_verified_at' => now(), // Delivery users don't need OTP
         ]);
         $delivery->assignRole('delivery');
 
@@ -46,6 +49,7 @@ class SampleDataSeeder extends Seeder
             'email' => 'customer@example.com',
             'password' => Hash::make('password'),
             'phone' => '+1234567893',
+            // email_verified_at is null - customers require OTP verification
         ]);
         $customer->assignRole('customer');
 

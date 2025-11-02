@@ -3,7 +3,6 @@
 namespace App\Observers;
 
 use App\Models\Order;
-use App\Mail\FirstOrderPromoMail;
 use App\Mail\TenthOrderPromoMail;
 use App\Mail\TwentiethOrderPromoMail;
 use Illuminate\Support\Facades\Mail;
@@ -25,10 +24,8 @@ class OrderObserver
                 ->count();
             
             // Send appropriate email based on order count
+            // Note: FirstOrderPromoMail (WELCOME code) is sent after OTP verification, not after first order
             switch ($deliveredOrdersCount) {
-                case 1:
-                    Mail::to($user->email)->send(new FirstOrderPromoMail());
-                    break;
                 case 10:
                     Mail::to($user->email)->send(new TenthOrderPromoMail());
                     break;
