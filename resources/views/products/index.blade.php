@@ -59,6 +59,15 @@
                         @foreach($category->products->take(8) as $product)
                         <div class="product-card">
                             <div class="product-image">
+                                @if($product->has_discount && $product->isDiscountValid())
+                                    <div class="discount-badge">
+                                        @if($product->discount_type === 'percentage')
+                                            -{{ $product->discount_value }}% OFF
+                                        @else
+                                            -{{ number_format($product->discount_value, 0) }} MAD OFF
+                                        @endif
+                                    </div>
+                                @endif
                                 <img src="{{ $product->image ?: 'https://images.unsplash.com/photo-' . (['1544551763-46a013bb2dcc', '1551218808-94e220e084d2', '1565299624946-b28f40c0fe4b', '1571019613454-1cb2f99b2d8b', '1578662996442-48f60103fc96', '1586190848861-99aa4bd1711f'][$loop->index % 6]) . '?w=300&h=200&fit=crop&crop=center' }}" 
                                      alt="{{ $product->name }}" 
                                      loading="lazy">
@@ -94,7 +103,14 @@
                                 </div>
                                 <div class="product-footer">
                                     <div class="price-time">
-                                        <span class="product-price">${{ number_format($product->price, 2) }}</span>
+                                        <div class="product-price">
+                                            @if($product->has_discount && $product->isDiscountValid())
+                                                <span class="text-red-500 line-through text-sm">${{ number_format($product->price, 2) }}</span>
+                                                <span class="text-green-600 font-bold">${{ number_format($product->discounted_price, 2) }}</span>
+                                            @else
+                                                <span>${{ number_format($product->price, 2) }}</span>
+                                            @endif
+                                        </div>
                                         <span class="product-time">⏱️ {{ $product->preparation_time }}min</span>
                                     </div>
                                 </div>
@@ -280,6 +296,30 @@
             transition: transform 0.3s ease;
         }
 
+        .discount-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
         .product-card:hover .product-image img {
             transform: scale(1.05);
         }
@@ -374,6 +414,20 @@
         .product-price {
             color: #d4af37;
             font-weight: 700;
+            font-size: 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .product-price .line-through {
+            color: #95a5a6;
+            font-size: 0.9rem;
+            text-decoration: line-through;
+        }
+
+        .product-price .font-bold {
+            color: #27ae60;
             font-size: 1.3rem;
         }
 

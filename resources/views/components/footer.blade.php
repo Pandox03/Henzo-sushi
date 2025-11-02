@@ -25,7 +25,7 @@
                     <li><a href="#about" class="text-gray-300 hover:text-yellow-400 transition-colors text-sm sm:text-base">About Us</a></li>
                     <li><a href="#contact" class="text-gray-300 hover:text-yellow-400 transition-colors text-sm sm:text-base">Contact</a></li>
                     @auth
-                        <li><a href="{{ route('dashboard') }}" class="text-gray-300 hover:text-yellow-400 transition-colors text-sm sm:text-base">Dashboard</a></li>
+                        <li><a href="{{ route('orders.index') }}" class="text-gray-300 hover:text-yellow-400 transition-colors text-sm sm:text-base">My Orders</a></li>
                     @endauth
                 </ul>
             </div>

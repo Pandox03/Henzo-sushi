@@ -7,10 +7,17 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\OrderItem;
 use App\Models\DeliveryLocation;
+use App\Models\Schedule;
+use App\Models\PromoCode;
+use App\Models\PromoCodeUsage;
+use App\Jobs\SendPromoCodeEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PromoCodeMail;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -210,11 +217,29 @@ class AdminController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
+            'preparation_time' => 'nullable|integer|min:1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_available' => 'boolean',
+            'has_discount' => 'nullable',
+            'discount_type' => 'nullable|in:percentage,fixed',
+            'discount_value' => 'nullable|numeric|min:0.01',
+            'discount_expires_at' => 'nullable|date',
         ]);
 
-        $productData = $request->only(['name', 'description', 'price', 'category_id', 'is_available']);
+        $productData = $request->only([
+            'name', 'description', 'price', 'category_id', 'preparation_time', 'is_available',
+            'has_discount', 'discount_type', 'discount_value', 'discount_expires_at'
+        ]);
+
+        // Handle checkbox
+        $productData['has_discount'] = $request->has('has_discount') ? true : false;
+        
+        // Clear discount fields if discount is disabled
+        if (!$productData['has_discount']) {
+            $productData['discount_type'] = null;
+            $productData['discount_value'] = null;
+            $productData['discount_expires_at'] = null;
+        }
 
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
@@ -241,9 +266,26 @@ class AdminController extends Controller
             'category_id' => 'required|exists:categories,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_available' => 'boolean',
+            'has_discount' => 'nullable',
+            'discount_type' => 'nullable|in:percentage,fixed',
+            'discount_value' => 'nullable|numeric|min:0.01',
+            'discount_expires_at' => 'nullable|date',
         ]);
 
-        $productData = $request->only(['name', 'description', 'price', 'category_id', 'is_available']);
+        $productData = $request->only([
+            'name', 'description', 'price', 'category_id', 'is_available',
+            'has_discount', 'discount_type', 'discount_value', 'discount_expires_at'
+        ]);
+
+        // Handle checkbox
+        $productData['has_discount'] = $request->has('has_discount') ? true : false;
+        
+        // Clear discount fields if discount is disabled
+        if (!$productData['has_discount']) {
+            $productData['discount_type'] = null;
+            $productData['discount_value'] = null;
+            $productData['discount_expires_at'] = null;
+        }
 
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
@@ -386,6 +428,365 @@ class AdminController extends Controller
     {
         // Update system settings here
         return redirect()->back()->with('success', 'Settings updated successfully!');
+    }
+
+    /**
+     * Display schedule management page
+     */
+    public function schedules()
+    {
+        $schedules = Schedule::where('is_override', false)
+            ->orderByRaw("FIELD(day_of_week, 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')")
+            ->get();
+        
+        $overrideSchedules = Schedule::where('is_override', true)
+            ->whereNotNull('override_date')
+            ->orderBy('override_date', 'desc')
+            ->get();
+        
+        return view('admin.schedules', compact('schedules', 'overrideSchedules'));
+    }
+
+    /**
+     * Update default schedule for a day of week
+     */
+    public function updateSchedule(Request $request, Schedule $schedule = null)
+    {
+        $request->validate([
+            'day_of_week' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'is_closed' => 'nullable|boolean',
+            'lunch_start' => 'nullable|date_format:H:i',
+            'lunch_end' => 'nullable|date_format:H:i',
+            'dinner_start' => 'nullable|date_format:H:i',
+            'dinner_end' => 'nullable|date_format:H:i',
+        ]);
+
+        if ($schedule && $schedule->is_override) {
+            // Update override schedule
+            $schedule->update([
+                'is_closed' => $request->has('is_closed'),
+                'lunch_start' => $request->lunch_start ? Carbon::parse($request->lunch_start)->format('H:i:s') : null,
+                'lunch_end' => $request->lunch_end ? Carbon::parse($request->lunch_end)->format('H:i:s') : null,
+                'dinner_start' => $request->dinner_start ? Carbon::parse($request->dinner_start)->format('H:i:s') : null,
+                'dinner_end' => $request->dinner_end ? Carbon::parse($request->dinner_end)->format('H:i:s') : null,
+                'notes' => $request->notes,
+            ]);
+
+            return redirect()->back()->with('success', 'Override schedule updated successfully!');
+        }
+
+        // Update or create default schedule
+        Schedule::updateOrCreate(
+            ['day_of_week' => $request->day_of_week, 'is_override' => false],
+            [
+                'is_closed' => $request->has('is_closed'),
+                'lunch_start' => $request->lunch_start ? Carbon::parse($request->lunch_start)->format('H:i:s') : null,
+                'lunch_end' => $request->lunch_end ? Carbon::parse($request->lunch_end)->format('H:i:s') : null,
+                'dinner_start' => $request->dinner_start ? Carbon::parse($request->dinner_start)->format('H:i:s') : null,
+                'dinner_end' => $request->dinner_end ? Carbon::parse($request->dinner_end)->format('H:i:s') : null,
+            ]
+        );
+
+        return redirect()->back()->with('success', 'Schedule updated successfully!');
+    }
+
+    /**
+     * Create override schedule for a specific date
+     */
+    public function createOverrideSchedule(Request $request)
+    {
+        $request->validate([
+            'override_date' => 'required|date',
+            'is_closed' => 'nullable|boolean',
+            'lunch_start' => 'nullable|date_format:H:i',
+            'lunch_end' => 'nullable|date_format:H:i',
+            'dinner_start' => 'nullable|date_format:H:i',
+            'dinner_end' => 'nullable|date_format:H:i',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $date = Carbon::parse($request->override_date);
+        $dayOfWeek = strtolower($date->format('l'));
+
+        Schedule::updateOrCreate(
+            [
+                'day_of_week' => $dayOfWeek,
+                'override_date' => $date->format('Y-m-d'),
+                'is_override' => true
+            ],
+            [
+                'is_closed' => $request->has('is_closed'),
+                'lunch_start' => $request->lunch_start ? Carbon::parse($request->lunch_start)->format('H:i:s') : null,
+                'lunch_end' => $request->lunch_end ? Carbon::parse($request->lunch_end)->format('H:i:s') : null,
+                'dinner_start' => $request->dinner_start ? Carbon::parse($request->dinner_start)->format('H:i:s') : null,
+                'dinner_end' => $request->dinner_end ? Carbon::parse($request->dinner_end)->format('H:i:s') : null,
+                'notes' => $request->notes,
+            ]
+        );
+
+        return redirect()->back()->with('success', 'Override schedule created successfully!');
+    }
+
+    /**
+     * Delete override schedule
+     */
+    public function deleteOverrideSchedule(Schedule $schedule)
+    {
+        if (!$schedule->is_override) {
+            return redirect()->back()->with('error', 'Cannot delete default schedule!');
+        }
+
+        $schedule->delete();
+        return redirect()->back()->with('success', 'Override schedule deleted successfully!');
+    }
+
+    /**
+     * Display promo codes management page
+     */
+    public function promoCodes()
+    {
+        $promoCodes = PromoCode::withCount('usages')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $products = Product::where('is_available', true)->orderBy('name')->get();
+        
+        // Prepare promo codes data for JavaScript
+        $promoCodesJson = $promoCodes->map(function($pc) {
+            return [
+                'id' => $pc->id,
+                'code' => $pc->code,
+                'name' => $pc->name,
+                'description' => $pc->description,
+                'discount_type' => $pc->discount_type,
+                'discount_value' => $pc->discount_value,
+                'minimum_order_amount' => $pc->minimum_order_amount,
+                'usage_limit_per_user' => $pc->usage_limit_per_user,
+                'total_usage_limit' => $pc->total_usage_limit,
+                'valid_for_days' => $pc->valid_for_days,
+                'is_active' => $pc->is_active,
+                'send_email_to_users' => $pc->send_email_to_users,
+                'applicable_products' => $pc->applicable_products,
+            ];
+        })->values()->toArray();
+        
+        return view('admin.promo-codes', compact('promoCodes', 'products', 'promoCodesJson'));
+    }
+
+    /**
+     * Store a new promo code
+     */
+    public function storePromoCode(Request $request)
+    {
+        try {
+            $request->validate([
+                'code' => 'required|string|max:50|unique:promo_codes,code|regex:/^[A-Z0-9-_]+$/i',
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string|max:1000',
+                'discount_type' => 'required|in:percentage,fixed',
+                'discount_value' => 'required|numeric|min:0.01',
+                'minimum_order_amount' => 'nullable|numeric|min:0',
+                'usage_limit_per_user' => 'required|integer|min:1',
+                'total_usage_limit' => 'nullable|integer|min:1',
+                'valid_for_days' => 'nullable|integer|min:1',
+                'is_active' => 'nullable',
+                'send_email_to_users' => 'nullable',
+                'applicable_products' => 'nullable|array',
+                'applicable_products.*' => 'exists:products,id',
+            ]);
+
+            $sendEmailToUsers = $request->has('send_email_to_users') && $request->send_email_to_users == '1';
+            
+            \Log::info('Promo code creation', [
+                'send_email_checkbox_present' => $request->has('send_email_to_users'),
+                'send_email_value' => $request->send_email_to_users ?? 'not set',
+                'send_email_checked' => $sendEmailToUsers,
+            ]);
+
+            $data = [
+                'code' => strtoupper(trim($request->code)),
+                'name' => $request->name,
+                'description' => $request->description,
+                'discount_type' => $request->discount_type,
+                'discount_value' => $request->discount_value,
+                'minimum_order_amount' => $request->minimum_order_amount ?: null,
+                'usage_limit_per_user' => $request->usage_limit_per_user,
+                'total_usage_limit' => $request->total_usage_limit ?: null,
+                'valid_for_days' => $request->valid_for_days ?: null,
+                'is_active' => $request->has('is_active') ? true : false,
+                'send_email_to_users' => $sendEmailToUsers,
+            ];
+
+            // Calculate expires_at if valid_for_days is set
+            if ($request->valid_for_days) {
+                $data['expires_at'] = Carbon::now()->addDays($request->valid_for_days);
+            }
+
+            // Handle applicable products
+            if ($request->has('applicable_products') && !empty($request->applicable_products)) {
+                $data['applicable_products'] = $request->applicable_products;
+            } else {
+                $data['applicable_products'] = null; // All products
+            }
+
+            $promoCode = PromoCode::create($data);
+
+            // Dispatch email jobs to queue if requested
+            if ($sendEmailToUsers) {
+                \Log::info('Queueing promo code emails for all users', [
+                    'promo_code_id' => $promoCode->id,
+                    'promo_code' => $promoCode->code,
+                ]);
+                
+                $users = User::whereHas('roles', function($query) {
+                    $query->where('name', 'customer');
+                })->whereNotNull('email_verified_at')->get();
+
+                \Log::info('Found ' . $users->count() . ' customers to queue emails for');
+
+                $queued = 0;
+                foreach ($users as $index => $user) {
+                    // Dispatch job with delay to respect rate limits (1 second between each email)
+                    SendPromoCodeEmail::dispatch($promoCode, $user)
+                        ->delay(now()->addSeconds($index));
+                    $queued++;
+                }
+
+                $promoCode->update(['emailed_at' => now()]);
+                
+                $message = "Promo code created successfully! {$queued} emails queued for delivery.";
+                
+                \Log::info('Promo code emails queued', [
+                    'queued' => $queued,
+                    'promo_code_id' => $promoCode->id,
+                ]);
+                
+                return redirect()->route('admin.promo-codes')->with('success', $message);
+            }
+
+            return redirect()->route('admin.promo-codes')->with('success', 'Promo code created successfully!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput()
+                ->with('error', 'Please check the form for errors.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to create promo code: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to create promo code: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update a promo code
+     */
+    public function updatePromoCode(Request $request, PromoCode $promoCode)
+    {
+        $request->validate([
+            'code' => 'required|string|max:50|unique:promo_codes,code,' . $promoCode->id . '|regex:/^[A-Z0-9-_]+$/',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'discount_type' => 'required|in:percentage,fixed',
+            'discount_value' => 'required|numeric|min:0.01',
+            'minimum_order_amount' => 'nullable|numeric|min:0',
+            'usage_limit_per_user' => 'required|integer|min:1',
+            'total_usage_limit' => 'nullable|integer|min:1',
+            'valid_for_days' => 'nullable|integer|min:1',
+            'is_active' => 'nullable|boolean',
+            'send_email_to_users' => 'nullable|boolean',
+            'applicable_products' => 'nullable|array',
+            'applicable_products.*' => 'exists:products,id',
+        ]);
+
+        $data = $request->only([
+            'code', 'name', 'description', 'discount_type', 'discount_value',
+            'minimum_order_amount', 'usage_limit_per_user', 'total_usage_limit',
+            'is_active', 'send_email_to_users'
+        ]);
+
+        // Convert code to uppercase
+        $data['code'] = strtoupper($data['code']);
+
+        // Handle valid_for_days and expires_at
+        if ($request->valid_for_days) {
+            // If valid_for_days changed or expires_at is null, recalculate
+            if ($promoCode->valid_for_days != $request->valid_for_days || !$promoCode->expires_at) {
+                $data['expires_at'] = Carbon::now()->addDays($request->valid_for_days);
+            }
+            $data['valid_for_days'] = $request->valid_for_days;
+        } else {
+            $data['valid_for_days'] = null;
+            $data['expires_at'] = null;
+        }
+
+        // Handle applicable products
+        if ($request->has('applicable_products')) {
+            $data['applicable_products'] = $request->applicable_products;
+        } else {
+            $data['applicable_products'] = null; // All products
+        }
+
+        $data['is_active'] = $request->has('is_active');
+        
+        // Only send email if it hasn't been sent before and checkbox is checked
+        if ($request->has('send_email_to_users') && !$promoCode->emailed_at) {
+            $users = User::whereHas('roles', function($query) {
+                $query->where('name', 'customer');
+            })->get();
+
+            foreach ($users as $user) {
+                try {
+                    Mail::to($user->email)->send(new PromoCodeMail($promoCode, $user));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send promo code email to ' . $user->email . ': ' . $e->getMessage());
+                }
+            }
+
+            $data['emailed_at'] = now();
+        }
+
+        $promoCode->update($data);
+
+        return redirect()->route('admin.promo-codes')->with('success', 'Promo code updated successfully!');
+    }
+
+    /**
+     * Delete a promo code
+     */
+    public function deletePromoCode(PromoCode $promoCode)
+    {
+        $promoCode->delete();
+        return redirect()->route('admin.promo-codes')->with('success', 'Promo code deleted successfully!');
+    }
+
+    /**
+     * Manually send promo code email to all users
+     */
+    public function sendPromoCodeEmail(PromoCode $promoCode)
+    {
+        $users = User::whereHas('roles', function($query) {
+            $query->where('name', 'customer');
+        })->whereNotNull('email_verified_at')->get();
+
+        $queued = 0;
+        foreach ($users as $index => $user) {
+            // Dispatch job with delay to respect rate limits (1 second between each email)
+            SendPromoCodeEmail::dispatch($promoCode, $user)
+                ->delay(now()->addSeconds($index));
+            $queued++;
+        }
+
+        $promoCode->update(['emailed_at' => now()]);
+
+        $message = "{$queued} emails queued for delivery.";
+
+        \Log::info('Manually queued promo code emails', [
+            'queued' => $queued,
+            'promo_code_id' => $promoCode->id,
+        ]);
+
+        return redirect()->back()->with('success', $message);
     }
 }
 

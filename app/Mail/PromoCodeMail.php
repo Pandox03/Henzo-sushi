@@ -2,23 +2,28 @@
 
 namespace App\Mail;
 
+use App\Models\PromoCode;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class FirstOrderPromoMail extends Mailable
+class PromoCodeMail extends Mailable
 {
     use Queueable, SerializesModels;
+
+    public $promoCode;
+    public $user;
 
     /**
      * Create a new message instance.
      */
-    public function __construct()
+    public function __construct(PromoCode $promoCode, User $user)
     {
-        //
+        $this->promoCode = $promoCode;
+        $this->user = $user;
     }
 
     /**
@@ -26,8 +31,9 @@ class FirstOrderPromoMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $subject = '🎉 Special Offer: ' . $this->promoCode->name;
         return new Envelope(
-            subject: '🎉 Welcome to ' . config('app.name') . ' - Get 15% Off Your First Order!',
+            subject: $subject,
         );
     }
 
@@ -37,7 +43,7 @@ class FirstOrderPromoMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.first-order-promo',
+            markdown: 'emails.promo-code',
         );
     }
 
