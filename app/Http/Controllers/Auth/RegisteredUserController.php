@@ -21,7 +21,7 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register-new');
+        return view('auth.register');
     }
 
     /**
@@ -38,7 +38,7 @@ class RegisteredUserController extends Controller
             'phone' => ['required', 'string', 'max:20'],
             'address' => ['required', 'string', 'max:500'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'string', 'in:customer'],
+            'role' => ['required', 'string', 'in:customer,chef,delivery'],
         ]);
 
         $user = User::create([
@@ -51,8 +51,8 @@ class RegisteredUserController extends Controller
             'is_active' => true,
         ]);
 
-        // Assign customer role to user
-        $role = Role::where('name', 'customer')->first();
+        // Assign selected role to user
+        $role = Role::where('name', $request->role)->first();
         if ($role) {
             $user->assignRole($role);
         }

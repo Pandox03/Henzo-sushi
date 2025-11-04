@@ -30,6 +30,29 @@
                 scroll-behavior: smooth;
             }
             
+            /* Remove any gaps between navigation and hero */
+            main {
+                padding: 0;
+                margin: 0;
+            }
+            
+            main > section:first-child {
+                margin-top: 0 !important;
+                padding-top: 8rem !important;
+            }
+            
+            @media (max-width: 768px) {
+                main > section:first-child {
+                    padding-top: 6rem !important;
+                }
+            }
+            
+            @media (max-width: 640px) {
+                main > section:first-child {
+                    padding-top: 5rem !important;
+                }
+            }
+            
             /* Touch-friendly button sizes */
             @media (max-width: 768px) {
                 button, .btn, a[role="button"] {
@@ -75,6 +98,11 @@
                 50% { transform: scale(1.1); }
                 100% { transform: scale(1); }
             }
+            
+            /* Prevent body scroll when mobile menu is open */
+            body.menu-open {
+                overflow: hidden;
+            }
         </style>
         
         <script>
@@ -105,15 +133,17 @@
             });
         </script>
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
+    <body class="font-sans antialiased bg-slate-900">
+        <div class="min-h-screen bg-slate-900">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
             @if (isset($header))
-                <header class="bg-white shadow">
+                <header class="bg-slate-800/50 backdrop-blur-lg shadow-lg border-b border-white/10">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
+                        <div class="text-slate-100">
+                            {{ $header }}
+                        </div>
                     </div>
                 </header>
             @endif

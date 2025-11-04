@@ -1,101 +1,112 @@
 <x-app-layout>
-    <!-- Sticky Category Navigation -->
-    <div class="sticky-nav-container">
-        <div class="sticky-category-nav" id="sticky-nav">
-            <div class="container">
-                <div class="category-nav">
-                    <button class="category-btn active" data-category="all">
-                        All
-                    </button>
-                    @foreach($categories as $category)
-                    <button class="category-btn" data-category="{{ $category->name }}">
-                        @if($category->name === 'Nigiri') 🍣
-                        @elseif($category->name === 'Maki Rolls') 🍱
-                        @elseif($category->name === 'Sashimi') 🐟
-                        @elseif($category->name === 'Appetizers') 🥢
-                        @else 🍽️
-                        @endif
-                        {{ $category->name }}
-                    </button>
-                    @endforeach
-                </div>
+    <!-- Products Page Header -->
+    <section class="products-page-header">
+        <div class="container-products">
+            <div class="page-header-content">
+                <h1 class="page-title">Our Menu</h1>
+                <p class="page-subtitle">Explore our authentic Japanese cuisine, crafted fresh daily by master chefs</p>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- Products Section -->
-    <section class="products-section" id="products">
-        <div class="container">
-            @if($products->count() > 0)
-                <!-- Products by Category - Vertical Layout -->
+    <section class="products-main-section">
+        <div class="container-products">
+            <!-- Category Filter -->
+            <div class="category-filter-section">
+                <div class="filter-header">
+                    <h2 class="filter-title">Browse by Category</h2>
+                    <p class="filter-subtitle">Select a category to filter dishes</p>
+                </div>
+            <div class="category-pills-wrapper">
+                <button class="category-pill-modern active" data-category="all">
+                    <span class="pill-text">All Dishes</span>
+                    <span class="pill-count">{{ $products->count() }}</span>
+                </button>
                 @foreach($categories as $category)
-                <div class="category-section" id="category-{{ Str::slug($category->name) }}" data-category="{{ $category->name }}">
-                    <div class="category-header">
-                        <h3 class="category-title">
-                            @if($category->name === 'Nigiri') 🍣
-                            @elseif($category->name === 'Maki Rolls') 🍱
-                            @elseif($category->name === 'Sashimi') 🐟
-                            @elseif($category->name === 'Appetizers') 🥢
-                            @else 🍽️
-                            @endif
-                            {{ $category->name }}
-                        </h3>
-                        <p class="category-description">
-                            @if($category->name === 'Nigiri')
-                                Traditional sushi with fish on rice
-                            @elseif($category->name === 'Maki Rolls')
-                                Rolled sushi with seaweed
-                            @elseif($category->name === 'Sashimi')
-                                Fresh raw fish slices
-                            @elseif($category->name === 'Appetizers')
-                                Japanese appetizers and sides
-                            @else
-                                Delicious {{ $category->name }} dishes
-                            @endif
-                        </p>
+                <button class="category-pill-modern" data-category="{{ $category->name }}">
+                    <span class="pill-text">{{ $category->name }}</span>
+                    <span class="pill-count">{{ $category->products->count() }}</span>
+                </button>
+                @endforeach
+            </div>
+            </div>
+
+            @if($products->count() > 0)
+                @foreach($categories as $category)
+                <div class="category-section-modern" data-category-name="{{ $category->name }}">
+                    <div class="category-header-clean">
+                        <div class="category-title-wrapper">
+                            <div>
+                                <h3 class="category-name-clean">{{ $category->name }}</h3>
+                                <p class="category-description-clean">
+                                    @if($category->name === 'Nigiri')
+                                        Hand-pressed sushi with premium fish on seasoned rice
+                                    @elseif($category->name === 'Maki Rolls')
+                                        Rolled sushi wrapped in crisp nori seaweed
+                                    @elseif($category->name === 'Sashimi')
+                                        Fresh, delicate slices of the finest seasonal fish
+                                    @elseif($category->name === 'Appetizers')
+                                        Traditional Japanese starters to begin your meal
+                                    @else
+                                        Carefully prepared {{ $category->name }}
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                        <span class="category-item-count">{{ $category->products->count() }} items</span>
                     </div>
                     
-                    <div class="products-grid">
-                        @foreach($category->products->take(8) as $product)
-                        <div class="product-card">
-                            <div class="product-image">
-                                <img src="{{ $product->image ?: 'https://images.unsplash.com/photo-' . (['1544551763-46a013bb2dcc', '1551218808-94e220e084d2', '1565299624946-b28f40c0fe4b', '1571019613454-1cb2f99b2d8b', '1578662996442-48f60103fc96', '1586190848861-99aa4bd1711f'][$loop->index % 6]) . '?w=300&h=200&fit=crop&crop=center' }}" 
+                    <div class="products-list-clean">
+                        @foreach($category->products as $product)
+                        <div class="product-item-clean">
+                            <div class="product-image-clean">
+                                <img src="{{ $product->image ?: 'https://images.unsplash.com/photo-' . (['1579584425555-c3ce17fd4351', '1583623025817-d180a2221d0a', '1564489563601-c53e96a14d2f', '1574071318508-1cdbab80d002', '1579027989536-46b295e8c8c1', '1582878826629-29b7ad1cdc43'][$loop->index % 6]) . '?w=400&h=300&fit=crop' }}" 
                                      alt="{{ $product->name }}" 
                                      loading="lazy">
-                                <div class="product-overlay">
-                                    <a href="{{ route('products.show', $product) }}" class="view-product-btn">
-                                        View Details
-                                    </a>
-                                    <button class="add-to-cart-btn" data-product-id="{{ $product->id }}">
-                                        Add to Cart
-                                    </button>
-                                </div>
+                                @if($loop->first)
+                                <span class="product-badge-popular">Popular</span>
+                                @endif
                             </div>
-                            <div class="product-info">
-                                <h4 class="product-title">{{ $product->name }}</h4>
-                                <p class="product-description">{{ Str::limit($product->description, 60) }}</p>
-                                <div class="product-ingredients">
-                                    <small class="ingredients-label">Ingredients:</small>
-                                    <span class="ingredients-text">
-                                        @if(str_contains(strtolower($product->name), 'salmon'))
-                                            Fresh Salmon, Sushi Rice, Nori, Wasabi
-                                        @elseif(str_contains(strtolower($product->name), 'tuna'))
-                                            Premium Tuna, Sushi Rice, Nori, Ginger
-                                        @elseif(str_contains(strtolower($product->name), 'eel'))
-                                            Grilled Eel, Sweet Sauce, Sushi Rice, Cucumber
-                                        @elseif(str_contains(strtolower($product->name), 'roll'))
-                                            Rice, Nori, Fresh Fish, Vegetables, Sesame
-                                        @elseif(str_contains(strtolower($product->name), 'soup'))
-                                            Miso Paste, Tofu, Seaweed, Green Onions
-                                        @else
-                                            Fresh Ingredients, Traditional Recipe
-                                        @endif
-                                    </span>
-                                </div>
-                                <div class="product-footer">
-                                    <div class="price-time">
-                                        <span class="product-price">${{ number_format($product->price, 2) }}</span>
-                                        <span class="product-time">⏱️ {{ $product->preparation_time }}min</span>
+                            
+                            <div class="product-details-clean">
+                                <div class="product-header-row">
+                                    <div class="product-info-left">
+                                        <h4 class="product-name-clean">{{ $product->name }}</h4>
+                                        <p class="product-desc-clean">{{ $product->description }}</p>
+                                        <div class="product-meta-clean">
+                                            <span class="meta-badge">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                {{ $product->preparation_time ?? '15' }} min
+                                            </span>
+                                            <span class="meta-badge">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                                Fresh
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="product-actions-right">
+                                        <span class="product-price-large">${{ number_format($product->price, 2) }}</span>
+                                        <div class="product-buttons">
+                                            <a href="{{ route('products.show', $product) }}" class="btn-view-details">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                                <span>Details</span>
+                                            </a>
+                                            <button class="btn-add-cart" data-product-id="{{ $product->id }}">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                                </svg>
+                                                <span>Add to Cart</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -104,434 +115,506 @@
                     </div>
                 </div>
                 @endforeach
-                
-                <!-- Pagination -->
-                <div class="pagination-container">
-                    {{ $products->links() }}
-                </div>
             @else
-                <div class="no-products">
-                    <div class="no-products-icon">🍣</div>
-                    <h3>No products found</h3>
-                    <p>Try adjusting your filter or check back later for new items.</p>
-                    <a href="{{ route('products.index') }}" class="btn-primary">View All Products</a>
+                <div class="no-products-state">
+                    <svg class="no-products-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                    <h3 class="no-products-title">No products found</h3>
+                    <p class="no-products-text">Check back later for new delicious items.</p>
                 </div>
             @endif
         </div>
     </section>
 
     <style>
-        /* Sticky Category Navigation */
-        .sticky-nav-container {
-            position: relative;
-            z-index: 1000;
+        :root {
+            --primary: #d4af37;
+            --primary-dark: #b8941f;
+            --text-dark: #1a202c;
+            --text-light: #64748b;
+        }
+
+        /* Page Header */
+        .products-page-header {
             background: white;
-            margin-top: 0;
+            padding: 6rem 2rem 3rem;
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        .sticky-category-nav {
-            background: white;
-            border-bottom: 1px solid #f0f0f0;
-            padding: 1rem 0;
-            transition: all 0.3s ease;
-            position: relative;
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            z-index: 1000;
+        .container-products {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
         }
 
-        .sticky-category-nav.sticky {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            z-index: 1000 !important;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(10px);
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-
-        /* Ensure category nav is always above other elements */
-        .sticky-nav-container {
-            position: relative;
-            z-index: 1000 !important;
-        }
-
-        .sticky-category-nav {
-            position: relative !important;
-            z-index: 1000 !important;
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-
-        /* Force visibility when not sticky */
-        .sticky-category-nav:not(.sticky) {
-            position: relative !important;
-            z-index: 1000 !important;
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-
-        .category-nav {
-            display: flex;
-            gap: 1rem;
-            overflow-x: auto;
-            padding: 0.5rem 0;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            justify-content: center;
-        }
-
-        .category-nav::-webkit-scrollbar {
-            display: none;
-        }
-
-        .category-btn {
-            background: #f8f9fa;
-            border: 2px solid transparent;
-            border-radius: 25px;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            color: #7f8c8d;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .category-btn:hover {
-            background: #e9ecef;
-            color: #2c3e50;
-        }
-
-        .category-btn.active {
-            background: #d4af37;
-            color: #2c3e50;
-            border-color: #d4af37;
-        }
-
-        /* Products Section */
-        .products-section {
-            background: #f8f9fa;
-            padding: 4rem 0;
-        }
-
-        .category-section {
-            margin-bottom: 4rem;
-            padding: 2rem 0;
-        }
-
-        .category-header {
+        .page-header-content {
             text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .category-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            color: #2c3e50;
-            margin-bottom: 1rem;
-        }
-
-        .category-description {
-            color: #7f8c8d;
-            font-size: 1.1rem;
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
         }
 
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        /* Products Section */
+        .products-main-section {
+            background: #fafbfc;
+            padding: 3rem 0 5rem;
+        }
+
+        /* Category Filter */
+        .category-filter-section {
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+        }
+
+        .filter-header {
             margin-bottom: 2rem;
         }
 
-        .product-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            border: 1px solid #f0f0f0;
+        .filter-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
         }
 
-        .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        .filter-subtitle {
+            color: var(--text-light);
+            font-size: 1rem;
         }
 
-        .product-image {
-            position: relative;
-            height: 200px;
-            overflow: hidden;
-        }
-
-        .product-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-
-        .product-card:hover .product-image img {
-            transform: scale(1.05);
-        }
-
-        .product-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
+        .category-pills-wrapper {
             display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-wrap: wrap;
             gap: 1rem;
-            opacity: 0;
+        }
+
+        .category-pill-modern {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.625rem;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 0.875rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .category-pill-modern:hover {
+            border-color: var(--primary);
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+        }
+
+        .category-pill-modern.active {
+            background: linear-gradient(135deg, var(--primary) 0%, #f4d03f 100%);
+            border-color: var(--primary);
+            color: #0f172a;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+
+        .pill-text {
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+        .pill-count {
+            background: rgba(0,0,0,0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            min-width: 1.5rem;
+            text-align: center;
+        }
+
+        .category-pill-modern.active .pill-count {
+            background: rgba(15, 23, 42, 0.2);
+        }
+
+        /* Category Section */
+        .category-section-modern {
+            margin-bottom: 4rem;
+            opacity: 1;
             transition: opacity 0.3s ease;
         }
 
-        .product-card:hover .product-overlay {
-            opacity: 1;
+        .category-section-modern.hidden {
+            display: none;
         }
 
-        .view-product-btn, .add-to-cart-btn {
-            background: #d4af37;
-            color: #2c3e50;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .view-product-btn:hover, .add-to-cart-btn:hover {
-            background: #b8941f;
-            transform: scale(1.05);
-        }
-
-        .product-info {
-            padding: 1.5rem;
-        }
-
-        .product-title {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-            color: #2c3e50;
-            font-weight: 600;
-            line-height: 1.3;
-        }
-
-        .product-description {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            line-height: 1.4;
-        }
-
-        .product-ingredients {
-            margin-bottom: 1rem;
-        }
-
-        .ingredients-label {
-            color: #7f8c8d;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .ingredients-text {
-            color: #2c3e50;
-            font-size: 0.85rem;
-            line-height: 1.3;
-            display: block;
-            margin-top: 0.25rem;
-        }
-
-        .product-footer {
-            border-top: 1px solid #f0f0f0;
-            padding-top: 1rem;
-        }
-
-        .price-time {
+        .category-header-clean {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
         }
 
-        .product-price {
-            color: #d4af37;
+        .category-title-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .category-name-clean {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
             font-weight: 700;
-            font-size: 1.3rem;
+            color: var(--text-dark);
+            margin-bottom: 0.375rem;
         }
 
-        .product-time {
-            color: #7f8c8d;
-            font-size: 0.85rem;
-            background: #f8f9fa;
-            padding: 0.25rem 0.75rem;
-            border-radius: 15px;
+        .category-description-clean {
+            color: var(--text-light);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .category-item-count {
+            background: #f8fafc;
+            padding: 0.625rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 0.9375rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Products List - Clean Layout */
+        .products-list-clean {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .product-item-clean {
+            display: flex;
+            gap: 2rem;
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .product-item-clean:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .product-image-clean {
+            flex-shrink: 0;
+            width: 200px;
+            height: 150px;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            background: #f8fafc;
+        }
+
+        .product-image-clean img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .product-item-clean:hover .product-image-clean img {
+            transform: scale(1.08);
+        }
+
+        .product-badge-popular {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: var(--primary);
+            color: #0f172a;
+            padding: 0.375rem 0.875rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+        }
+
+        .product-details-clean {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-header-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .product-info-left {
+            flex: 1;
+        }
+
+        .product-name-clean {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.625rem;
+            line-height: 1.3;
+        }
+
+        .product-desc-clean {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            font-size: 0.9375rem;
+        }
+
+        .product-meta-clean {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            background: #f8fafc;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-light);
+            border: 1px solid #e2e8f0;
+        }
+
+        .product-actions-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .product-price-large {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .product-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-view-details,
+        .btn-add-cart {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            border: none;
+            white-space: nowrap;
+        }
+
+        .btn-view-details {
+            background: #f8fafc;
+            color: var(--text-dark);
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-view-details:hover {
+            background: white;
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .btn-add-cart {
+            background: linear-gradient(135deg, var(--primary) 0%, #f4d03f 100%);
+            color: #0f172a;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn-add-cart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4);
         }
 
         /* No Products */
-        .no-products {
+        .no-products-state {
             text-align: center;
-            padding: 4rem 2rem;
+            padding: 5rem 2rem;
         }
 
         .no-products-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
+            width: 5rem;
+            height: 5rem;
+            margin: 0 auto 1.5rem;
+            color: var(--text-light);
+            opacity: 0.4;
         }
 
-        .no-products h3 {
-            font-size: 1.5rem;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
+        .no-products-title {
+            font-size: 2rem;
+            color: var(--text-dark);
+            margin-bottom: 0.75rem;
         }
 
-        .no-products p {
-            color: #7f8c8d;
-            margin-bottom: 2rem;
-        }
-
-        /* Pagination */
-        .pagination-container {
-            display: flex;
-            justify-content: center;
-            margin-top: 3rem;
+        .no-products-text {
+            color: var(--text-light);
+            font-size: 1.125rem;
         }
 
         /* Responsive Design */
+        @media (max-width: 1024px) {
+            .product-header-row {
+                flex-direction: column;
+            }
+
+            .product-actions-right {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .product-buttons {
+                flex-direction: row;
+            }
+        }
+
         @media (max-width: 768px) {
-            .products-grid {
-                grid-template-columns: 1fr;
+            .products-page-header {
+                padding: 5rem 1.5rem 2rem;
+            }
+
+            .container-products {
+                padding: 0 1rem;
+            }
+
+            .category-filter-section {
+                padding: 1.5rem;
+            }
+
+            .category-header-clean {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .product-item-clean {
+                flex-direction: column;
                 gap: 1.5rem;
             }
-            
-            .category-nav {
-                justify-content: flex-start;
-                padding-left: 1rem;
-                padding-right: 1rem;
+
+            .product-image-clean {
+                width: 100%;
+                height: 200px;
+            }
+
+            .product-actions-right {
+                width: 100%;
+            }
+
+            .product-buttons {
+                width: 100%;
+            }
+
+            .btn-view-details,
+            .btn-add-cart {
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .category-name-clean {
+                font-size: 1.5rem;
+            }
+
+            .product-price-large {
+                font-size: 1.875rem;
+            }
+
+            .btn-view-details span,
+            .btn-add-cart span {
+                display: none;
+            }
+
+            .btn-view-details,
+            .btn-add-cart {
+                padding: 0.875rem;
             }
         }
     </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const categoryBtns = document.querySelectorAll('.category-btn');
-            const categorySections = document.querySelectorAll('.category-section');
-            const stickyNav = document.getElementById('sticky-nav');
-            const productsSection = document.getElementById('products');
+            const categoryPills = document.querySelectorAll('.category-pill-modern');
+            const categorySections = document.querySelectorAll('.category-section-modern');
             
-            // Sticky navigation functionality
-            function handleStickyNav() {
-                const productsSectionTop = productsSection.offsetTop;
-                const scrollTop = window.pageYOffset;
-                
-                console.log('Scroll Top:', scrollTop, 'Products Section Top:', productsSectionTop);
-                
-                if (scrollTop >= productsSectionTop - 50) {
-                    console.log('Adding sticky class');
-                    stickyNav.classList.add('sticky');
-                    // Clear inline styles when sticky
-                    stickyNav.style.position = '';
-                    stickyNav.style.zIndex = '';
-                    stickyNav.style.display = '';
-                    stickyNav.style.opacity = '';
-                    stickyNav.style.visibility = '';
-                } else {
-                    console.log('Removing sticky class');
-                    stickyNav.classList.remove('sticky');
-                    // Ensure the nav is visible when not sticky
-                    stickyNav.style.position = 'relative';
-                    stickyNav.style.zIndex = '1000';
-                    stickyNav.style.display = 'block';
-                    stickyNav.style.opacity = '1';
-                    stickyNav.style.visibility = 'visible';
-                }
-            }
-            
-            // Category button click functionality
-            categoryBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
+            // Category filtering
+            categoryPills.forEach(pill => {
+                pill.addEventListener('click', function() {
                     const selectedCategory = this.getAttribute('data-category');
                     
-                    // Update active button
-                    categoryBtns.forEach(b => b.classList.remove('active'));
+                    // Update active pill
+                    categoryPills.forEach(p => p.classList.remove('active'));
                     this.classList.add('active');
                     
-                    if (selectedCategory === 'all') {
-                        // Show all sections
-                        categorySections.forEach(section => {
-                            section.style.display = 'block';
-                        });
-                        // Scroll to products section
-                        productsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    } else {
-                        // Show only selected category
-                        categorySections.forEach(section => {
-                            const sectionCategory = section.getAttribute('data-category');
-                            if (sectionCategory === selectedCategory) {
-                                section.style.display = 'block';
-                                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            } else {
-                                section.style.display = 'none';
-                            }
-                        });
-                    }
+                    // Filter sections
+                    categorySections.forEach(section => {
+                        const sectionCategory = section.getAttribute('data-category-name');
+                        
+                        if (selectedCategory === 'all') {
+                            section.classList.remove('hidden');
+                        } else if (sectionCategory === selectedCategory) {
+                            section.classList.remove('hidden');
+                        } else {
+                            section.classList.add('hidden');
+                        }
+                    });
                 });
             });
-            
-            // Intersection Observer for active category highlighting
-            const observerOptions = {
-                root: null,
-                rootMargin: '-20% 0px -70% 0px',
-                threshold: 0
-            };
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const categoryName = entry.target.getAttribute('data-category');
-                        categoryBtns.forEach(btn => {
-                            btn.classList.remove('active');
-                            if (btn.getAttribute('data-category') === categoryName) {
-                                btn.classList.add('active');
-                            }
-                        });
-                    }
-                });
-            }, observerOptions);
-            
-            // Observe all category sections
-            categorySections.forEach(section => {
-                observer.observe(section);
-            });
-            
-            // Scroll event listener for sticky nav
-            window.addEventListener('scroll', handleStickyNav);
-            
-            // Ensure nav is properly positioned on page load
-            handleStickyNav();
             
             // Add to cart functionality
-            document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+            document.querySelectorAll('.btn-add-cart').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     const productId = this.getAttribute('data-product-id');
+                    const originalHTML = this.innerHTML;
                     
                     fetch('{{ route("cart.add") }}', {
                         method: 'POST',
@@ -544,43 +627,40 @@
                             quantity: 1
                         })
                     })
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log('Cart response:', data); // Debug log
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Success state
+                            this.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg><span>Added!</span>';
+                            this.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
                             
-                            if (data.success) {
-                                // Show success message
-                                this.textContent = 'Added!';
-                                this.style.background = '#28a745';
-                                
-                                // Update cart count
-                                const cartCount = document.getElementById('cart-count');
-                                const cartCountMobile = document.getElementById('cart-count-mobile');
-                                
-                                if (cartCount) {
-                                    cartCount.textContent = data.cart_count;
-                                    cartCount.style.display = data.cart_count > 0 ? 'flex' : 'none';
-                                }
-                                if (cartCountMobile) {
-                                    cartCountMobile.textContent = data.cart_count;
-                                    cartCountMobile.style.display = data.cart_count > 0 ? 'flex' : 'none';
-                                }
-                                
-                                setTimeout(() => {
-                                    this.textContent = 'Add to Cart';
-                                    this.style.background = '#d4af37';
-                                }, 2000);
-                            } else {
-                                alert(data.message || 'Failed to add item to cart');
+                            // Update cart count
+                            const cartCount = document.getElementById('cart-count');
+                            const cartCountMobile = document.getElementById('cart-count-mobile');
+                            
+                            if (cartCount) {
+                                cartCount.textContent = data.cart_count;
+                                cartCount.style.display = data.cart_count > 0 ? 'flex' : 'none';
                             }
-                        })
+                            if (cartCountMobile) {
+                                cartCountMobile.textContent = data.cart_count;
+                                cartCountMobile.style.display = data.cart_count > 0 ? 'flex' : 'none';
+                            }
+                            
+                            setTimeout(() => {
+                                this.innerHTML = originalHTML;
+                                this.style.background = 'linear-gradient(135deg, var(--primary) 0%, #f4d03f 100%)';
+                            }, 2000);
+                        } else {
+                            alert(data.message || 'Failed to add item to cart');
+                        }
+                    })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('Failed to add item to cart');
+                        alert('Failed to add item to cart. Please try again.');
                     });
                 });
             });
         });
-
     </script>
 </x-app-layout>

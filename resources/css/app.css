@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Lenis Smooth Scroll */
+html.lenis {
+    height: auto;
+}
+
+.lenis.lenis-smooth {
+    scroll-behavior: auto;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+    overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+    pointer-events: none;
+}
+
 /* Henzo Sushi Custom Styles */
 :root {
     --primary-color: #d4af37;
@@ -11,6 +32,15 @@
     --text-light: #7f8c8d;
     --bg-light: #f8f9fa;
     --white: #ffffff;
+}
+
+/* Smooth scrolling setup */
+html {
+    overflow-x: hidden;
+}
+
+body {
+    overflow-x: hidden;
 }
 
 /* Custom animations */
