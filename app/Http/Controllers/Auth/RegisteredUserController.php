@@ -49,6 +49,7 @@ class RegisteredUserController extends Controller
             'address' => $request->address,
             'password' => Hash::make($request->password),
             'is_active' => true,
+            'email_verified_at' => null, // Explicitly set to null to ensure OTP is required on first login
         ]);
 
         // Assign selected role to user

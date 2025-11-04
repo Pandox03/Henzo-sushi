@@ -25,6 +25,7 @@ class DeliveryUserSeeder extends Seeder
                 'phone' => '0612345678',
                 'password' => Hash::make('password'),
                 'is_active' => true,
+                'email_verified_at' => now(), // Delivery users don't need OTP
             ],
             [
                 'name' => 'Youssef Delivery',
@@ -32,6 +33,7 @@ class DeliveryUserSeeder extends Seeder
                 'phone' => '0623456789',
                 'password' => Hash::make('password'),
                 'is_active' => true,
+                'email_verified_at' => now(), // Delivery users don't need OTP
             ],
             [
                 'name' => 'Karim Delivery',
@@ -39,6 +41,7 @@ class DeliveryUserSeeder extends Seeder
                 'phone' => '0634567890',
                 'password' => Hash::make('password'),
                 'is_active' => true,
+                'email_verified_at' => now(), // Delivery users don't need OTP
             ],
         ];
 

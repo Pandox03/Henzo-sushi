@@ -159,6 +159,15 @@
                             @if($loop->first)
                                 <span class="product-badge-new">Popular</span>
                             @endif
+                            @if($product->has_discount && $product->isDiscountValid())
+                                <div class="discount-badge">
+                                    @if($product->discount_type === 'percentage')
+                                        -{{ $product->discount_value }}% OFF
+                                    @else
+                                        -{{ number_format($product->discount_value, 0) }} MAD OFF
+                                    @endif
+                                </div>
+                            @endif
                             <img src="{{ $product->image ?: 'https://images.unsplash.com/photo-' . (['1579584425555-c3ce17fd4351', '1583623025817-d180a2221d0a', '1564489563601-c53e96a14d2f', '1574071318508-1cdbab80d002', '1579027989536-46b295e8c8c1', '1582878826629-29b7ad1cdc43'][$loop->index % 6]) . '?w=600&h=400&fit=crop' }}" 
                                  alt="{{ $product->name }}" 
                                  loading="lazy">
@@ -180,6 +189,14 @@
                                 <div class="product-tags">
                                     <span class="tag">{{ $product->preparation_time ?? '15' }} min</span>
                                     <span class="tag">Fresh</span>
+                                </div>
+                                <div class="product-price">
+                                    @if($product->has_discount && $product->isDiscountValid())
+                                        <span class="line-through text-sm" style="color: #95a5a6;">${{ number_format($product->price, 2) }}</span>
+                                        <span class="font-bold" style="color: #27ae60;">${{ number_format($product->discounted_price, 2) }}</span>
+                                    @else
+                                        <span>${{ number_format($product->price, 2) }}</span>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -235,7 +252,7 @@
                             Login
                         </a>
                     @else
-                        <a href="{{ route('dashboard') }}" class="btn-primary">
+                        <a href="{{ route('products.index') }}" class="btn-primary">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
@@ -1055,6 +1072,30 @@
             font-weight: 600;
             text-decoration: none;
             transition: all 0.3s ease;
+        }
+
+        .discount-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
         }
 
         .see-more-link:hover {

@@ -61,6 +61,15 @@
                         @foreach($category->products as $product)
                         <div class="product-item-clean">
                             <div class="product-image-clean">
+                                @if($product->has_discount && $product->isDiscountValid())
+                                    <div class="discount-badge">
+                                        @if($product->discount_type === 'percentage')
+                                            -{{ $product->discount_value }}% OFF
+                                        @else
+                                            -{{ number_format($product->discount_value, 0) }} MAD OFF
+                                        @endif
+                                    </div>
+                                @endif
                                 <img src="{{ $product->image ?: 'https://images.unsplash.com/photo-' . (['1579584425555-c3ce17fd4351', '1583623025817-d180a2221d0a', '1564489563601-c53e96a14d2f', '1574071318508-1cdbab80d002', '1579027989536-46b295e8c8c1', '1582878826629-29b7ad1cdc43'][$loop->index % 6]) . '?w=400&h=300&fit=crop' }}" 
                                      alt="{{ $product->name }}" 
                                      loading="lazy">
@@ -91,7 +100,14 @@
                                     </div>
                                     
                                     <div class="product-actions-right">
-                                        <span class="product-price-large">${{ number_format($product->price, 2) }}</span>
+                                        <div class="product-price-display">
+                                            @if($product->has_discount && $product->isDiscountValid())
+                                                <span class="line-through" style="font-size: 1rem; color: #95a5a6;">${{ number_format($product->price, 2) }}</span>
+                                                <span class="product-price-large" style="color: #27ae60;">${{ number_format($product->discounted_price, 2) }}</span>
+                                            @else
+                                                <span class="product-price-large">${{ number_format($product->price, 2) }}</span>
+                                            @endif
+                                        </div>
                                         <div class="product-buttons">
                                             <a href="{{ route('products.show', $product) }}" class="btn-view-details">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,6 +222,30 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
+        
+        .discount-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
 
         .category-pill-modern {
             display: inline-flex;
@@ -284,6 +324,13 @@
             font-weight: 700;
             color: var(--text-dark);
             margin-bottom: 0.375rem;
+        }
+        
+        .product-price-display {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.25rem;
         }
 
         .category-description-clean {

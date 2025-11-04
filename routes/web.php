@@ -111,11 +111,21 @@ Route::middleware(['auth', 'check.role:admin'])->group(function () {
     // Settings
     Route::get('/admin/settings', [App\Http\Controllers\AdminController::class, 'settings'])->name('admin.settings');
     Route::post('/admin/settings', [App\Http\Controllers\AdminController::class, 'updateSettings'])->name('admin.settings.update');
-});
+    
+    // Schedule Management
+    Route::get('/admin/schedules', [App\Http\Controllers\AdminController::class, 'schedules'])->name('admin.schedules');
+    Route::post('/admin/schedules', [App\Http\Controllers\AdminController::class, 'updateSchedule'])->name('admin.schedules.update');
+    Route::post('/admin/schedules/override', [App\Http\Controllers\AdminController::class, 'createOverrideSchedule'])->name('admin.schedules.override');
+    Route::post('/admin/schedules/{schedule}/update', [App\Http\Controllers\AdminController::class, 'updateSchedule'])->name('admin.schedules.update-override');
+    Route::delete('/admin/schedules/{schedule}', [App\Http\Controllers\AdminController::class, 'deleteOverrideSchedule'])->name('admin.schedules.delete');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    // Promo Code Management
+    Route::get('/admin/promo-codes', [App\Http\Controllers\AdminController::class, 'promoCodes'])->name('admin.promo-codes');
+    Route::post('/admin/promo-codes', [App\Http\Controllers\AdminController::class, 'storePromoCode'])->name('admin.promo-codes.store');
+    Route::put('/admin/promo-codes/{promoCode}', [App\Http\Controllers\AdminController::class, 'updatePromoCode'])->name('admin.promo-codes.update');
+    Route::delete('/admin/promo-codes/{promoCode}', [App\Http\Controllers\AdminController::class, 'deletePromoCode'])->name('admin.promo-codes.delete');
+    Route::post('/admin/promo-codes/{promoCode}/send-email', [App\Http\Controllers\AdminController::class, 'sendPromoCodeEmail'])->name('admin.promo-codes.send-email');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

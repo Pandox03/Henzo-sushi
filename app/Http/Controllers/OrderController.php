@@ -6,10 +6,14 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Schedule;
+use App\Models\PromoCode;
+use App\Models\PromoCodeUsage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Rules\MoroccanPhone;
 use App\Events\NewOrderReceived;
+use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -18,6 +22,18 @@ class OrderController extends Controller
         // Check if user is authenticated
         if (!Auth::check()) {
             return redirect()->route('login')->with('message', 'Please login to place an order.');
+        }
+
+        // Check if restaurant is open
+        if (!Schedule::isOpenNow()) {
+            $nextOpening = Schedule::getNextOpeningTime();
+            $message = 'We are currently closed. ';
+            if ($nextOpening) {
+                $message .= 'We will reopen on ' . $nextOpening->format('F d, Y') . ' at ' . $nextOpening->format('g:i A') . '.';
+            } else {
+                $message .= 'Please check back later.';
+            }
+            return redirect()->route('cart.index')->with('error', $message);
         }
 
         $cart = session('cart', []);
@@ -50,6 +66,18 @@ class OrderController extends Controller
             return redirect()->route('login')->with('message', 'Please login to place an order.');
         }
 
+        // Check if restaurant is open
+        if (!Schedule::isOpenNow()) {
+            $nextOpening = Schedule::getNextOpeningTime();
+            $message = 'We are currently closed. ';
+            if ($nextOpening) {
+                $message .= 'We will reopen on ' . $nextOpening->format('F d, Y') . ' at ' . $nextOpening->format('g:i A') . '.';
+            } else {
+                $message .= 'Please check back later.';
+            }
+            return redirect()->route('cart.index')->with('error', $message);
+        }
+
         $request->validate([
             'delivery_address' => 'required|string|max:500',
             'phone' => ['required', 'string', 'max:20', new MoroccanPhone],
@@ -65,29 +93,57 @@ class OrderController extends Controller
 
         // Calculate total
         $total = 0;
+        $cartItems = [];
         foreach ($cart as $id => $details) {
             $product = Product::find($id);
             if ($product) {
+                $cartItems[] = [
+                    'product' => $product,
+                    'quantity' => $details['quantity'],
+                    'total' => $details['quantity'] * $product->price
+                ];
                 $total += $details['quantity'] * $product->price;
             }
         }
 
-        // Loyalty discounts
         $user = Auth::user();
-        $userDeliveredOrdersCount = Order::where('user_id', $user->id)
-            ->where('status', Order::STATUS_DELIVERED)
-            ->count();
-
         $discountPercent = 0;
-        if ($userDeliveredOrdersCount === 0) {
-            // First order
-            $discountPercent = 15;
-        } elseif ((($userDeliveredOrdersCount + 1) % 10) === 1) {
-            // 11th, 21st, 31st, ... orders
-            $discountPercent = 20;
+        $discountAmount = 0;
+        $promoCode = null;
+        $promoCodeId = session('promo_code_id');
+
+        // Check if promo code is applied
+        if ($promoCodeId) {
+            $promoCode = PromoCode::find($promoCodeId);
+            if ($promoCode && $promoCode->isValid() && $promoCode->canBeUsedByUser($user->id, $total)) {
+                // Use promo code discount
+                $discountAmount = session('discount_amount', 0);
+                if ($promoCode->discount_type === 'percentage') {
+                    $discountPercent = $promoCode->discount_value;
+                }
+            } else {
+                // Invalid promo code, remove from session
+                session()->forget(['promo_code', 'promo_code_id', 'discount_amount', 'discount_percent']);
+            }
         }
 
-        $discountAmount = round($total * ($discountPercent / 100), 2);
+        // Fallback to loyalty discounts if no valid promo code
+        if (!$promoCode || $discountAmount == 0) {
+            $userDeliveredOrdersCount = Order::where('user_id', $user->id)
+                ->where('status', Order::STATUS_DELIVERED)
+                ->count();
+
+            if ($userDeliveredOrdersCount === 0) {
+                // First order
+                $discountPercent = 15;
+            } elseif ((($userDeliveredOrdersCount + 1) % 10) === 1) {
+                // 11th, 21st, 31st, ... orders
+                $discountPercent = 20;
+            }
+
+            $discountAmount = round($total * ($discountPercent / 100), 2);
+        }
+
         $totalAfterDiscount = max(0, $total - $discountAmount);
 
         // Create order
@@ -105,6 +161,19 @@ class OrderController extends Controller
             'discount_percent' => $discountPercent,
             'discount_amount' => $discountAmount,
         ]);
+
+        // Track promo code usage if applicable
+        if ($promoCode && $discountAmount > 0) {
+            PromoCodeUsage::create([
+                'promo_code_id' => $promoCode->id,
+                'user_id' => $user->id,
+                'order_id' => $order->id,
+                'discount_amount' => $discountAmount,
+            ]);
+            
+            // Clear promo code from session after use
+            session()->forget(['promo_code', 'promo_code_id', 'discount_amount', 'discount_percent']);
+        }
 
         // Create order items
         foreach ($cart as $id => $details) {

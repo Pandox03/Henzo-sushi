@@ -23,6 +23,15 @@
                 <!-- Product Images -->
                 <div class="product-images-col">
                     <div class="product-main-image-wrapper">
+                        @if($product->has_discount && $product->isDiscountValid())
+                            <div class="discount-badge">
+                                @if($product->discount_type === 'percentage')
+                                    -{{ $product->discount_value }}% OFF
+                                @else
+                                    -{{ number_format($product->discount_value, 0) }} MAD OFF
+                                @endif
+                            </div>
+                        @endif
                         <img src="{{ $product->image ?: 'https://images.unsplash.com/photo-' . (['1579584425555-c3ce17fd4351', '1583623025817-d180a2221d0a', '1564489563601-c53e96a14d2f', '1574071318508-1cdbab80d002', '1579027989536-46b295e8c8c1', '1582878826629-29b7ad1cdc43'][$product->id % 6]) . '?w=800&h=600&fit=crop' }}" 
                              alt="{{ $product->name }}" 
                              class="product-main-image">
@@ -105,7 +114,12 @@
                     <div class="price-info-card">
                         <div class="price-section">
                             <span class="price-label">Price</span>
-                            <span class="product-detail-price">${{ number_format($product->price, 2) }}</span>
+                            @if($product->has_discount && $product->isDiscountValid())
+                                <span class="original-price">${{ number_format($product->price, 2) }}</span>
+                                <span class="product-detail-price" style="color: #27ae60;">${{ number_format($product->discounted_price, 2) }}</span>
+                            @else
+                                <span class="product-detail-price">${{ number_format($product->price, 2) }}</span>
+                            @endif
                         </div>
                         <div class="divider-vertical"></div>
                         <div class="prep-time-section">
@@ -141,7 +155,7 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                             </svg>
-                            <span>Add to Cart - $<span id="total-price">{{ number_format($product->price, 2) }}</span></span>
+                            <span>Add to Cart - $<span id="total-price">{{ number_format($product->has_discount && $product->isDiscountValid() ? $product->discounted_price : $product->price, 2) }}</span></span>
                         </button>
                     </div>
                     
@@ -183,6 +197,15 @@
                 @foreach($relatedProducts as $relatedProduct)
                 <a href="{{ route('products.show', $relatedProduct) }}" class="related-card-modern">
                     <div class="related-image-wrapper">
+                        @if($relatedProduct->has_discount && $relatedProduct->isDiscountValid())
+                            <div class="discount-badge">
+                                @if($relatedProduct->discount_type === 'percentage')
+                                    -{{ $relatedProduct->discount_value }}% OFF
+                                @else
+                                    -{{ number_format($relatedProduct->discount_value, 0) }} MAD OFF
+                                @endif
+                            </div>
+                        @endif
                         <img src="{{ $relatedProduct->image ?: 'https://images.unsplash.com/photo-' . (['1579584425555-c3ce17fd4351', '1583623025817-d180a2221d0a', '1564489563601-c53e96a14d2f', '1574071318508-1cdbab80d002', '1579027989536-46b295e8c8c1', '1582878826629-29b7ad1cdc43'][$relatedProduct->id % 6]) . '?w=400&h=300&fit=crop' }}" 
                              alt="{{ $relatedProduct->name }}" 
                              loading="lazy">
@@ -191,7 +214,14 @@
                         <h4 class="related-product-name">{{ $relatedProduct->name }}</h4>
                         <p class="related-product-desc">{{ Str::limit($relatedProduct->description, 60) }}</p>
                         <div class="related-footer">
-                            <span class="related-price">${{ number_format($relatedProduct->price, 2) }}</span>
+                            @if($relatedProduct->has_discount && $relatedProduct->isDiscountValid())
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                    <span style="font-size: 0.875rem; color: #95a5a6; text-decoration: line-through;">${{ number_format($relatedProduct->price, 2) }}</span>
+                                    <span class="related-price" style="color: #27ae60;">${{ number_format($relatedProduct->discounted_price, 2) }}</span>
+                                </div>
+                            @else
+                                <span class="related-price">${{ number_format($relatedProduct->price, 2) }}</span>
+                            @endif
                             <span class="related-view-link">
                                 View Details
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -282,6 +312,30 @@
             overflow: hidden;
             box-shadow: 0 20px 60px rgba(0,0,0,0.12);
             background: #f8fafc;
+        }
+
+        .discount-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
         }
 
         .product-main-image {
@@ -660,6 +714,14 @@
             color: var(--text-dark);
             margin-bottom: 0.5rem;
         }
+        
+        .original-price {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #95a5a6;
+            text-decoration: line-through;
+            margin-bottom: 0.25rem;
+        }
 
         .related-product-desc {
             color: var(--text-light);
@@ -771,7 +833,7 @@
 
     <script>
         let quantity = 1;
-        const basePrice = {{ $product->price }};
+        const basePrice = {{ $product->has_discount && $product->isDiscountValid() ? $product->discounted_price : $product->price }};
         const productId = {{ $product->id }};
 
         function increaseQuantity() {
