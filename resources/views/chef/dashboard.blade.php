@@ -1,369 +1,505 @@
-<x-app-layout>
-    <div class="min-h-screen bg-gray-50 py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Header -->
-            <div class="mb-8">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900">Chef Dashboard</h1>
-                        <p class="mt-2 text-gray-600">Manage orders and track your cooking progress</p>
-                    </div>
-                    <div>
-                    </div>
+@extends('layouts.dashboard')
+
+@section('sidebar-nav')
+    <a href="{{ route('chef.dashboard') }}" class="nav-item active">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        <span>Dashboard</span>
+    </a>
+
+    <a href="{{ route('chef.dashboard') }}" class="nav-item">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        <span>New Orders</span>
+    </a>
+
+    <a href="{{ route('chef.dashboard') }}" class="nav-item">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Preparing</span>
+    </a>
+
+    <a href="{{ route('chef.orders.history') }}" class="nav-item">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span>Order History</span>
+    </a>
+
+    <a href="#" class="nav-item">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+        <span>Menu Items</span>
+    </a>
+
+    <a href="#" class="nav-item">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <span>Statistics</span>
+    </a>
+
+    <a href="{{ route('profile.edit') }}" class="nav-item">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span>Settings</span>
+    </a>
+@endsection
+
+@section('content')
+<style>
+    /* Chef Stats */
+    .chef-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .chef-stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .chef-stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .chef-stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .chef-stat-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    /* Order Sections */
+    .orders-section {
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .order-count-badge {
+        background: var(--primary-orange);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    /* Order Cards */
+    .orders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .order-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .order-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--primary-orange);
+        box-shadow: 0 8px 24px rgba(255, 87, 34, 0.2);
+    }
+
+    .order-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .order-id {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .order-time {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .customer-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .customer-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-orange);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: white;
+    }
+
+    .customer-details h4 {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.125rem;
+    }
+
+    .customer-details p {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .order-items {
+        margin-bottom: 1rem;
+    }
+
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        font-size: 0.875rem;
+    }
+
+    .item-name {
+        color: var(--text-primary);
+    }
+
+    .item-quantity {
+        color: var(--text-secondary);
+    }
+
+    .order-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .order-total {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-orange);
+    }
+
+    .order-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-button {
+        padding: 0.625rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-accept {
+        background: var(--primary-orange);
+        color: white;
+    }
+
+    .btn-accept:hover {
+        background: var(--primary-orange-dark);
+    }
+
+    .btn-ready {
+        background: #22c55e;
+        color: white;
+    }
+
+    .btn-ready:hover {
+        background: #16a34a;
+    }
+
+    .btn-view {
+        background: var(--bg-dark);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-view:hover {
+        background: var(--border-color);
+    }
+
+    .timer {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary-orange);
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+        .orders-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .chef-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<!-- Page Header -->
+<div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">👨‍🍳 Chef Dashboard</h1>
+    <p style="color: var(--text-secondary);">Manage and prepare customer orders</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="chef-stats">
+    <div class="chef-stat-card">
+        <div class="chef-stat-icon">⏳</div>
+        <div class="chef-stat-value">{{ $awaitingOrders->count() }}</div>
+        <div class="chef-stat-label">Awaiting Orders</div>
+    </div>
+
+    <div class="chef-stat-card">
+        <div class="chef-stat-icon">👨‍🍳</div>
+        <div class="chef-stat-value">{{ $chefOrders->count() }}</div>
+        <div class="chef-stat-label">My Orders</div>
+    </div>
+
+    <div class="chef-stat-card">
+        <div class="chef-stat-icon">✅</div>
+        <div class="chef-stat-value">{{ $completedToday ?? 0 }}</div>
+        <div class="chef-stat-label">Completed Today</div>
+    </div>
+
+    <div class="chef-stat-card">
+        <div class="chef-stat-icon">⚡</div>
+        <div class="chef-stat-value">{{ $averageTime ?? '15' }}min</div>
+        <div class="chef-stat-label">Avg Prep Time</div>
+    </div>
+</div>
+
+<!-- Awaiting Orders Section -->
+@if($awaitingOrders->count() > 0)
+<div class="orders-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            New Orders
+            <span class="order-count-badge">{{ $awaitingOrders->count() }}</span>
+        </h2>
+    </div>
+
+    <div class="orders-grid">
+        @foreach($awaitingOrders as $order)
+        <div class="order-card">
+            <div class="order-card-header">
+                <span class="order-id">#{{ $order->id }}</span>
+                <span class="order-time">{{ $order->created_at->diffForHumans() }}</span>
+            </div>
+
+            <div class="customer-info">
+                <div class="customer-avatar">
+                    {{ strtoupper(substr($order->user->name, 0, 1)) }}
+                </div>
+                <div class="customer-details">
+                    <h4>{{ $order->user->name }}</h4>
+                    <p>{{ $order->user->phone ?? 'No phone' }}</p>
                 </div>
             </div>
 
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <span class="text-3xl">⏳</span>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Awaiting Orders</h3>
-                            <p class="text-2xl font-bold text-yellow-600">{{ $awaitingOrders->count() }}</p>
-                        </div>
-                    </div>
+            <div class="order-items">
+                @foreach($order->orderItems->take(3) as $item)
+                <div class="order-item">
+                    <span class="item-name">{{ $item->product->name }}</span>
+                    <span class="item-quantity">x{{ $item->quantity }}</span>
                 </div>
-                
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <span class="text-3xl">👨‍🍳</span>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">My Orders</h3>
-                            <p class="text-2xl font-bold text-blue-600">{{ $chefOrders->count() }}</p>
-                        </div>
-                    </div>
+                @endforeach
+                @if($order->orderItems->count() > 3)
+                <div class="order-item">
+                    <span style="color: var(--text-secondary); font-size: 0.75rem;">
+                        +{{ $order->orderItems->count() - 3 }} more items
+                    </span>
                 </div>
-                
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <span class="text-3xl">✅</span>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Completed Today</h3>
-                            <p class="text-2xl font-bold text-green-600">{{ $chefOrders->where('status', 'delivered')->where('delivered_at', '>=', today())->count() }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Awaiting Orders -->
-            <div class="bg-white rounded-lg shadow mb-8">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-900">Awaiting Orders</h2>
-                    <p class="text-gray-600">New orders waiting for chef assignment</p>
-                </div>
-                
-                @if($awaitingOrders->count() > 0)
-                    <div class="divide-y divide-gray-200">
-                        @foreach($awaitingOrders as $order)
-                        <div class="p-6">
-                            <div class="flex items-center justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="flex-shrink-0">
-                                            <span class="text-2xl">🍣</span>
-                                        </div>
-                                        <div class="flex-1">
-                                            <h3 class="text-lg font-semibold text-gray-900">Order #{{ $order->order_number }}</h3>
-                                            <p class="text-sm text-gray-600">Customer: {{ $order->user->name }}</p>
-                                            <p class="text-sm text-gray-600">Phone: {{ $order->phone }}</p>
-                                            <p class="text-sm text-gray-600">Address: {{ $order->delivery_address }}</p>
-                                            <p class="text-sm text-gray-600">Total: ${{ number_format($order->total_amount, 2) }}</p>
-                                            <p class="text-sm text-gray-500">Placed: {{ $order->created_at->format('M d, Y H:i') }}</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Order Items -->
-                                    <div class="mt-4">
-                                        <h4 class="text-sm font-medium text-gray-900 mb-2">Order Items:</h4>
-                                        <div class="space-y-1">
-                                            @foreach($order->orderItems as $item)
-                                            <div class="flex justify-between text-sm">
-                                                <span>{{ $item->product->name }} x{{ $item->quantity }}</span>
-                                                <span>${{ number_format($item->total_price, 2) }}</span>
-                                            </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                    
-                                    @if($order->notes)
-                                    <div class="mt-3">
-                                        <h4 class="text-sm font-medium text-gray-900">Special Instructions:</h4>
-                                        <p class="text-sm text-gray-600">{{ $order->notes }}</p>
-                                    </div>
-                                    @endif
-                                </div>
-                                
-                                <div class="ml-6 flex flex-col space-y-2">
-                                    <a href="{{ route('chef.orders.show', $order) }}" 
-                                       class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-center">
-                                        View Details
-                                    </a>
-                                    <form action="{{ route('chef.orders.accept', $order) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" 
-                                                class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors w-full">
-                                            Accept Order
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="p-6 text-center">
-                        <span class="text-4xl">🍣</span>
-                        <h3 class="mt-2 text-lg font-medium text-gray-900">No awaiting orders</h3>
-                        <p class="text-gray-600">All caught up! New orders will appear here.</p>
-                    </div>
                 @endif
             </div>
 
-            <!-- My Orders -->
-            <div class="bg-white rounded-lg shadow">
-                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <div>
-                        <h2 class="text-xl font-semibold text-gray-900">My Orders</h2>
-                        <p class="text-gray-600">Orders you're currently handling</p>
-                    </div>
-                    <a href="{{ route('chef.orders.history') }}" class="text-yellow-600 hover:text-yellow-700 font-medium">
-                        View All History →
-                    </a>
+            <div class="order-footer">
+                <span class="order-total">${{ number_format($order->total_amount, 2) }}</span>
+                <div class="order-actions">
+                    <form action="{{ route('chef.orders.accept', $order) }}" method="POST" style="display: inline;">
+                        @csrf
+                        <button type="submit" class="action-button btn-accept">Accept</button>
+                    </form>
+                    <a href="{{ route('chef.orders.show', $order) }}" class="action-button btn-view">View</a>
                 </div>
-                
-                @if($chefOrders->count() > 0)
-                    <div class="divide-y divide-gray-200">
-                        @foreach($chefOrders->take(5) as $order)
-                        <div class="p-6">
-                            <div class="flex items-center justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="flex-shrink-0">
-                                            @if($order->status === 'accepted')
-                                                <span class="text-2xl">👨‍🍳</span>
-                                            @elseif($order->status === 'preparing')
-                                                <span class="text-2xl">🍣</span>
-                                            @elseif($order->status === 'ready')
-                                                <span class="text-2xl">✅</span>
-                                            @else
-                                                <span class="text-2xl">🍣</span>
-                                            @endif
-                                        </div>
-                                        <div class="flex-1">
-                                            <h3 class="text-lg font-semibold text-gray-900">Order #{{ $order->order_number }}</h3>
-                                            <p class="text-sm text-gray-600">Customer: {{ $order->user->name }}</p>
-                                            <p class="text-sm text-gray-600">Total: ${{ number_format($order->total_amount, 2) }}</p>
-                                            <p class="text-sm text-gray-500">Accepted: {{ $order->accepted_at ? $order->accepted_at->format('M d, Y H:i') : 'N/A' }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="ml-6 flex items-center space-x-3">
-                                    <span class="px-3 py-1 text-xs font-semibold rounded-full
-                                        @if($order->status === 'accepted') bg-blue-100 text-blue-800
-                                        @elseif($order->status === 'preparing') bg-yellow-100 text-yellow-800
-                                        @elseif($order->status === 'ready') bg-green-100 text-green-800
-                                        @else bg-gray-100 text-gray-800
-                                        @endif">
-                                        {{ ucfirst(str_replace('_', ' ', $order->status)) }}
-                                    </span>
-                                    
-                                    @if($order->status === 'accepted')
-                                        <div class="flex space-x-2">
-                                            <form action="{{ route('chef.orders.status', $order) }}" method="POST" class="inline">
-                                                @csrf
-                                                <input type="hidden" name="status" value="preparing">
-                                                <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white text-sm py-1 px-3 rounded">
-                                                    Start Preparing
-                                                </button>
-                                            </form>
-                                            <a href="{{ route('chef.orders.print-bill', $order) }}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white text-sm py-1 px-3 rounded">
-                                                Print Bill
-                                            </a>
-                                        </div>
-                                    @elseif($order->status === 'preparing')
-                                        <div class="flex space-x-2">
-                                            <form action="{{ route('chef.orders.status', $order) }}" method="POST" class="inline">
-                                                @csrf
-                                                <input type="hidden" name="status" value="ready">
-                                                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white text-sm py-1 px-3 rounded">
-                                                    Mark Ready
-                                                </button>
-                                            </form>
-                                            <a href="{{ route('chef.orders.print-bill', $order) }}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white text-sm py-1 px-3 rounded">
-                                                Print Bill
-                                            </a>
-                                        </div>
-                                    @elseif($order->status === 'ready')
-                                        <div class="flex space-x-2">
-                                            <button onclick="openDeliveryModal({{ $order->id }})" class="bg-green-500 hover:bg-green-600 text-white text-sm py-1 px-3 rounded">
-                                                Assign Delivery
-                                            </button>
-                                            <a href="{{ route('chef.orders.print-bill', $order) }}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white text-sm py-1 px-3 rounded">
-                                                Print Bill
-                                            </a>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="p-6 text-center">
-                        <span class="text-4xl">👨‍🍳</span>
-                        <h3 class="mt-2 text-lg font-medium text-gray-900">No orders yet</h3>
-                        <p class="text-gray-600">Accept orders from the awaiting list above.</p>
-                    </div>
+            </div>
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
+<!-- Preparing Orders Section -->
+@if($chefOrders->count() > 0)
+<div class="orders-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            Currently Preparing
+            <span class="order-count-badge">{{ $chefOrders->count() }}</span>
+        </h2>
+    </div>
+
+    <div class="orders-grid">
+        @foreach($chefOrders as $order)
+        <div class="order-card">
+            <div class="order-card-header">
+                <span class="order-id">#{{ $order->id }}</span>
+                <div class="timer">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {{ $order->accepted_at ? $order->accepted_at->diffForHumans(null, true) : 'Just now' }}
+                </div>
+            </div>
+
+            <div class="customer-info">
+                <div class="customer-avatar">
+                    {{ strtoupper(substr($order->user->name, 0, 1)) }}
+                </div>
+                <div class="customer-details">
+                    <h4>{{ $order->user->name }}</h4>
+                    <p>{{ $order->user->address ?? 'No address' }}</p>
+                </div>
+            </div>
+
+            <div class="order-items">
+                @foreach($order->orderItems->take(3) as $item)
+                <div class="order-item">
+                    <span class="item-name">{{ $item->product->name }}</span>
+                    <span class="item-quantity">x{{ $item->quantity }}</span>
+                </div>
+                @endforeach
+                @if($order->orderItems->count() > 3)
+                <div class="order-item">
+                    <span style="color: var(--text-secondary); font-size: 0.75rem;">
+                        +{{ $order->orderItems->count() - 3 }} more items
+                    </span>
+                </div>
                 @endif
             </div>
-        </div>
-    </div>
 
-    <!-- Delivery Assignment Modal -->
-    <div id="deliveryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Assign Delivery Person</h3>
-                    <button onclick="closeDeliveryModal()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
+            <div class="order-footer">
+                <span class="order-total">${{ number_format($order->total_amount, 2) }}</span>
+                <div class="order-actions">
+                    <form action="{{ route('chef.orders.status', $order) }}" method="POST" style="display: inline;">
+                        @csrf
+                        <input type="hidden" name="status" value="ready">
+                        <button type="submit" class="action-button btn-ready">Mark Ready</button>
+                    </form>
+                    <a href="{{ route('chef.orders.show', $order) }}" class="action-button btn-view">View</a>
                 </div>
-                
-                <form id="deliveryForm" method="POST">
-                    @csrf
-                    <div class="mb-4">
-                        <label for="delivery_guy_id" class="block text-sm font-medium text-gray-700 mb-2">
-                            Select Delivery Person
-                        </label>
-                        <select id="delivery_guy_id" name="delivery_guy_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                            <option value="">Loading delivery persons...</option>
-                        </select>
-                    </div>
-                    
-                    <div class="flex justify-end space-x-3">
-                        <button type="button" onclick="closeDeliveryModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
-                            Assign Delivery
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
+        @endforeach
     </div>
+</div>
+@endif
 
-    <script>
-        let currentOrderId = null;
+<!-- Empty State -->
+@if($awaitingOrders->count() === 0 && $chefOrders->count() === 0)
+<div class="empty-state">
+    <div class="empty-state-icon">🍱</div>
+    <h3 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">No Orders Yet</h3>
+    <p>New orders will appear here when customers place them</p>
+</div>
+@endif
+@endsection
 
-        function openDeliveryModal(orderId) {
-            currentOrderId = orderId;
-            document.getElementById('deliveryModal').classList.remove('hidden');
-            loadDeliveryGuys();
-        }
-
-        function closeDeliveryModal() {
-            document.getElementById('deliveryModal').classList.add('hidden');
-            currentOrderId = null;
-        }
-
-        function loadDeliveryGuys() {
-            fetch('{{ route("chef.delivery-guys") }}')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const select = document.getElementById('delivery_guy_id');
-                    select.innerHTML = '<option value="">Select a delivery person</option>';
-                    
-                    if (data && data.length > 0) {
-                        data.forEach(deliveryGuy => {
-                            const option = document.createElement('option');
-                            option.value = deliveryGuy.id;
-                            option.textContent = `${deliveryGuy.name} (${deliveryGuy.phone})`;
-                            select.appendChild(option);
-                        });
-                    } else {
-                        select.innerHTML = '<option value="">No delivery persons available</option>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading delivery guys:', error);
-                    document.getElementById('delivery_guy_id').innerHTML = '<option value="">Error loading delivery persons: ' + error.message + '</option>';
-                });
-        }
-
-        document.getElementById('deliveryForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            if (!currentOrderId) {
-                alert('No order selected');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('delivery_guy_id', document.getElementById('delivery_guy_id').value);
-            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-            
-            const deliveryGuyId = formData.get('delivery_guy_id');
-            
-            if (!deliveryGuyId) {
-                alert('Please select a delivery person');
-                return;
-            }
-
-            console.log('Submitting delivery assignment:', {
-                orderId: currentOrderId,
-                deliveryGuyId: deliveryGuyId,
-                url: `/chef/orders/${currentOrderId}/assign-delivery`
-            });
-
-            fetch(`/chef/orders/${currentOrderId}/assign-delivery`, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                console.log('Response status:', response.status);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
+@push('scripts')
+<script>
+    // Auto-refresh page every 30 seconds to check for new orders
+    setInterval(() => {
+        // Check for new orders without full page reload
+        fetch('{{ route("chef.check-new-orders") }}')
+            .then(response => response.json())
             .then(data => {
-                console.log('Response data:', data);
-                if (data.success) {
-                    closeDeliveryModal();
-                    location.reload(); // Reload to show updated status
-                } else {
-                    alert(data.message || 'Error assigning delivery');
+                if (data.hasNewOrders) {
+                    // Play notification sound
+                    const audio = new Audio('/sounds/notification.mp3');
+                    audio.play().catch(e => console.log('Could not play sound'));
+                    
+                    // Show browser notification
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification('New Order!', {
+                            body: `You have ${data.newOrdersCount} new order(s)`,
+                            icon: '/favicon.ico'
+                        });
+                    }
+                    
+                    // Reload page to show new orders
+                    setTimeout(() => location.reload(), 1000);
                 }
             })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error assigning delivery: ' + error.message);
-            });
-        });
+            .catch(error => console.error('Error checking orders:', error));
+    }, 30000);
 
-    </script>
-    
-    <!-- Real-time Notifications -->
-    <script src="{{ asset('js/chef-realtime.js') }}"></script>
-</x-app-layout>
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+</script>
+@endpush
+

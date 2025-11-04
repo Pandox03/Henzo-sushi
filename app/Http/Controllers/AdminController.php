@@ -28,15 +28,44 @@ class AdminController extends Controller
 
     public function dashboard()
     {
-        // Get statistics
+        // Current month dates
+        $currentMonthStart = now()->startOfMonth();
+        $currentMonthEnd = now()->endOfMonth();
+        $lastMonthStart = now()->subMonth()->startOfMonth();
+        $lastMonthEnd = now()->subMonth()->endOfMonth();
+
+        // Get statistics with growth
+        $currentMonthOrders = Order::whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])->count();
+        $lastMonthOrders = Order::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->count();
+        $ordersGrowth = $lastMonthOrders > 0 ? (($currentMonthOrders - $lastMonthOrders) / $lastMonthOrders * 100) : 0;
+
+        $currentMonthRevenue = Order::where('status', 'delivered')
+            ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
+            ->sum('total_amount');
+        $lastMonthRevenue = Order::where('status', 'delivered')
+            ->whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->sum('total_amount');
+        $revenueGrowth = $lastMonthRevenue > 0 ? (($currentMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue * 100) : 0;
+
+        $currentMonthCustomers = User::role('customer')
+            ->whereBetween('created_at', [$currentMonthStart, $currentMonthEnd])
+            ->count();
+        $lastMonthCustomers = User::role('customer')
+            ->whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->count();
+        $customersGrowth = $lastMonthCustomers > 0 ? (($currentMonthCustomers - $lastMonthCustomers) / $lastMonthCustomers * 100) : 0;
+
         $stats = [
             'total_orders' => Order::count(),
+            'orders_growth' => round($ordersGrowth, 1),
             'pending_orders' => Order::where('status', 'pending')->count(),
             'preparing_orders' => Order::where('status', 'preparing')->count(),
             'out_for_delivery' => Order::where('status', 'out_for_delivery')->count(),
             'delivered_orders' => Order::where('status', 'delivered')->count(),
             'total_revenue' => Order::where('status', 'delivered')->sum('total_amount'),
+            'revenue_growth' => round($revenueGrowth, 1),
             'total_customers' => User::role('customer')->count(),
+            'customers_growth' => round($customersGrowth, 1),
             'total_chefs' => User::role('chef')->count(),
             'total_delivery_guys' => User::role('delivery')->count(),
             'total_products' => Product::count(),
@@ -54,12 +83,44 @@ class AdminController extends Controller
             ->get()
             ->pluck('count', 'status');
 
-        // Revenue by day (last 7 days)
-        $revenueByDay = Order::where('status', 'delivered')
-            ->where('created_at', '>=', now()->subDays(7))
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total_amount) as revenue'))
-            ->groupBy('date')
-            ->orderBy('date')
+        // Revenue by day (last 30 days) - for chart
+        $revenueData = [];
+        $labels = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $labels[] = now()->subDays($i)->format('M d');
+            
+            $revenue = Order::where('status', 'delivered')
+                ->whereDate('created_at', $date)
+                ->sum('total_amount');
+            
+            $revenueData[] = round($revenue, 2);
+        }
+
+        // Orders by day (last 30 days) - for chart
+        $ordersData = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            
+            $orderCount = Order::whereDate('created_at', $date)->count();
+            $ordersData[] = $orderCount;
+        }
+
+        // Top selling products
+        $topProducts = OrderItem::select(
+                'products.id',
+                'products.name',
+                'products.image',
+                'products.price',
+                DB::raw('SUM(order_items.quantity) as total_sold'),
+                DB::raw('SUM(order_items.total_price) as revenue')
+            )
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('orders.status', 'delivered')
+            ->groupBy('products.id', 'products.name', 'products.image', 'products.price')
+            ->orderByDesc('total_sold')
+            ->limit(5)
             ->get();
 
         // Top customers (by delivered revenue)
@@ -77,7 +138,16 @@ class AdminController extends Controller
             ->limit(5)
             ->get();
 
-        return view('admin.dashboard', compact('stats', 'recentOrders', 'ordersByStatus', 'revenueByDay', 'topCustomers'));
+        return view('admin.dashboard', compact(
+            'stats', 
+            'recentOrders', 
+            'ordersByStatus', 
+            'revenueData', 
+            'ordersData',
+            'labels',
+            'topProducts',
+            'topCustomers'
+        ));
     }
 
     // User Management

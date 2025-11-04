@@ -44,7 +44,13 @@ class DeliveryController extends Controller
                 ->count(),
         ];
 
-        return view('delivery.dashboard', compact('assignedOrders', 'todayStats'));
+        // Calculate today's earnings (assuming 10% of order value as delivery fee)
+        $earnings = Order::where('delivery_guy_id', $deliveryGuy->id)
+            ->where('status', 'delivered')
+            ->whereBetween('delivered_at', [$today, $tomorrow])
+            ->sum('total_amount') * 0.1;
+
+        return view('delivery.dashboard', compact('assignedOrders', 'todayStats', 'earnings'));
     }
 
     public function showOrder(Order $order)

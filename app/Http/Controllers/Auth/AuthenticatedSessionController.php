@@ -86,9 +86,11 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('chef.dashboard');
         } elseif ($user->hasRole('delivery')) {
             return redirect()->route('delivery.dashboard');
+        } elseif ($user->hasRole('customer')) {
+            return redirect()->route('customer.dashboard');
         }
 
-        // Customer users should be redirected to home page, not dashboard
+        // Default fallback
         return redirect()->route('home');
     }
 

@@ -25,13 +25,23 @@ class ChefController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Get chef's order history
+        // Get chef's orders that are being prepared
         $chefOrders = Order::where('chef_id', Auth::id())
+            ->whereIn('status', ['accepted', 'preparing'])
             ->with(['user', 'orderItems.product'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('chef.dashboard', compact('awaitingOrders', 'chefOrders'));
+        // Today's completed orders
+        $completedToday = Order::where('chef_id', Auth::id())
+            ->whereDate('created_at', today())
+            ->whereIn('status', ['ready', 'out_for_delivery', 'delivered'])
+            ->count();
+
+        // Average preparation time (dummy for now)
+        $averageTime = 15;
+
+        return view('chef.dashboard', compact('awaitingOrders', 'chefOrders', 'completedToday', 'averageTime'));
     }
 
     public function acceptOrder(Order $order)

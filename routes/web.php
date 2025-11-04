@@ -47,6 +47,15 @@ Route::post('/send-otp', [App\Http\Controllers\OtpVerificationController::class,
 Route::post('/verify-otp', [App\Http\Controllers\OtpVerificationController::class, 'verifyOtp'])->name('otp.verify.post');
 Route::post('/resend-otp', [App\Http\Controllers\OtpVerificationController::class, 'resendOtp'])->name('otp.resend');
 
+// Customer routes
+Route::middleware(['auth', 'check.role:customer'])->group(function () {
+    Route::get('/customer/dashboard', [App\Http\Controllers\CustomerController::class, 'dashboard'])->name('customer.dashboard');
+    Route::get('/customer/liked', [App\Http\Controllers\CustomerController::class, 'liked'])->name('customer.liked');
+    Route::get('/customer/feedback', [App\Http\Controllers\CustomerController::class, 'feedback'])->name('customer.feedback');
+    Route::get('/customer/messages', [App\Http\Controllers\CustomerController::class, 'messages'])->name('customer.messages');
+    Route::get('/customer/customization', [App\Http\Controllers\CustomerController::class, 'customization'])->name('customer.customization');
+});
+
 // Delivery routes
 Route::middleware(['auth', 'check.role:delivery'])->group(function () {
     Route::get('/delivery/dashboard', [App\Http\Controllers\DeliveryController::class, 'dashboard'])->name('delivery.dashboard');

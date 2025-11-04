@@ -1,50 +1,111 @@
-<x-admin-layout>
-    <div class="py-12">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <h1 class="text-2xl font-bold mb-4">✏️ Edit Category</h1>
-                    <form method="POST" action="{{ route('admin.categories.update', $category) }}" enctype="multipart/form-data" class="space-y-6">
-                        @csrf
-                        @method('PUT')
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Name</label>
-                            <input type="text" name="name" value="{{ old('name', $category->name) }}" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500">
-                            @error('name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Description</label>
-                            <textarea name="description" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500">{{ old('description', $category->description) }}</textarea>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Image</label>
-                            @if($category->image)
-                                <div class="mb-2"><img src="{{ Storage::url($category->image) }}" alt="{{ $category->name }}" class="h-20 w-20 object-cover rounded"></div>
-                            @endif
-                            <input type="file" name="image" accept="image/*" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                            @error('image')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Sort Order</label>
-                                <input type="number" name="sort_order" value="{{ old('sort_order', $category->sort_order) }}" min="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+@extends('layouts.dashboard')
+
+@section('sidebar-nav')
+    @include('admin.partials.sidebar-nav', ['active' => 'categories'])
+@endsection
+
+@section('content')
+@include('admin.partials.form-styles')
+
+<!-- Page Header -->
+<div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">✏️ Edit Category</h1>
+    <p style="color: var(--text-secondary);">Update category information</p>
+</div>
+
+<!-- Form Card -->
+<form method="POST" action="{{ route('admin.categories.update', $category) }}" enctype="multipart/form-data">
+    @csrf
+    @method('PUT')
+    
+    <div class="form-card">
+        <div class="form-section">
+            <h3 class="section-title">Category Information</h3>
+            
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label class="form-label">
+                        Category Name
+                        <span class="required">*</span>
+                    </label>
+                    <input type="text" name="name" value="{{ old('name', $category->name) }}" required 
+                           class="form-input" placeholder="Enter category name">
+                    @error('name')
+                        <span class="form-error">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-textarea" 
+                              placeholder="Enter category description">{{ old('description', $category->description) }}</textarea>
+                    @error('description')
+                        <span class="form-error">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Sort Order</label>
+                    <input type="number" name="sort_order" value="{{ old('sort_order', $category->sort_order) }}" 
+                           min="0" class="form-input" placeholder="0">
+                    <span class="form-help">Lower numbers appear first</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <label class="form-checkbox">
+                        <input type="checkbox" name="is_active" value="1" 
+                               {{ old('is_active', $category->is_active) ? 'checked' : '' }}>
+                        <span>Active (visible to customers)</span>
+                    </label>
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label">Category Image</label>
+                    <div class="image-upload-preview" onclick="document.getElementById('image-input').click()">
+                        @if($category->image)
+                            <img src="{{ Storage::url($category->image) }}" alt="{{ $category->name }}" id="preview-img">
+                        @else
+                            <div style="text-align: center; color: var(--text-secondary);" id="placeholder">
+                                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 0.5rem;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <p>Click to upload image</p>
                             </div>
-                            <div class="flex items-end">
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', $category->is_active) ? 'checked' : '' }} class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
-                                    <span class="ml-2 text-sm text-gray-900">Active</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="flex justify-end space-x-3">
-                            <a href="{{ route('admin.categories') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg">Cancel</a>
-                            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">Update</button>
-                        </div>
-                    </form>
+                        @endif
+                    </div>
+                    <input type="file" id="image-input" name="image" accept="image/*" style="display: none;" 
+                           onchange="previewImage(event)">
+                    @error('image')
+                        <span class="form-error">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
         </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Update Category
+            </button>
+            <a href="{{ route('admin.categories') }}" class="btn-secondary">Cancel</a>
+        </div>
     </div>
-</x-admin-layout>
+</form>
 
-
+<script>
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.querySelector('.image-upload-preview');
+            preview.innerHTML = '<img src="' + e.target.result + '" alt="Preview">';
+        }
+        reader.readAsDataURL(file);
+    }
+}
+</script>
+@endsection

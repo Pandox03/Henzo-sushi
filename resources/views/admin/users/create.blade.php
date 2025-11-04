@@ -1,98 +1,125 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                ➕ Create New User
-            </h2>
-            <a href="{{ route('admin.users') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
-                ← Back to Users
-            </a>
-        </div>
-    </x-slot>
+@extends('layouts.dashboard')
 
-    <div class="py-12">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-6">
-                        @csrf
-                        
-                        <!-- Name -->
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                            <input type="text" name="name" id="name" value="{{ old('name') }}" required
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            @error('name')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+@section('sidebar-nav')
+    @include('admin.partials.sidebar-nav', ['active' => 'users'])
+@endsection
 
-                        <!-- Email -->
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                            <input type="email" name="email" id="email" value="{{ old('email') }}" required
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            @error('email')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+@section('content')
+@include('admin.partials.form-styles')
 
-                        <!-- Phone -->
-                        <div>
-                            <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                            <input type="tel" name="phone" id="phone" value="{{ old('phone') }}" required
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            @error('phone')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+<!-- Page Header -->
+<div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">➕ Add User</h1>
+    <p style="color: var(--text-secondary);">Create a new user account</p>
+</div>
 
-                        <!-- Role -->
-                        <div>
-                            <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
-                            <select name="role" id="role" required
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <option value="">Select a role</option>
-                                <option value="customer" {{ old('role') == 'customer' ? 'selected' : '' }}>👤 Customer</option>
-                                <option value="chef" {{ old('role') == 'chef' ? 'selected' : '' }}>👨‍🍳 Chef</option>
-                                <option value="delivery" {{ old('role') == 'delivery' ? 'selected' : '' }}>🚚 Delivery Driver</option>
-                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>👑 Admin</option>
-                            </select>
-                            @error('role')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+<!-- Form Card -->
+<form method="POST" action="{{ route('admin.users.store') }}">
+    @csrf
+    
+    <div class="form-card">
+        <div class="form-section">
+            <h3 class="section-title">User Information</h3>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">
+                        Full Name
+                        <span class="required">*</span>
+                    </label>
+                    <input type="text" name="name" value="{{ old('name') }}" required 
+                           class="form-input" placeholder="Enter full name">
+                    @error('name')
+                        <span class="form-error">{{ $message }}</span>
+                    @enderror
+                </div>
 
-                        <!-- Password -->
-                        <div>
-                            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                            <input type="password" name="password" id="password" required
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            @error('password')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        Email Address
+                        <span class="required">*</span>
+                    </label>
+                    <input type="email" name="email" value="{{ old('email') }}" required 
+                           class="form-input" placeholder="user@example.com">
+                    @error('email')
+                        <span class="form-error">{{ $message }}</span>
+                    @enderror
+                </div>
 
-                        <!-- Confirm Password -->
-                        <div>
-                            <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                            <input type="password" name="password_confirmation" id="password_confirmation" required
-                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" name="phone" value="{{ old('phone') }}" 
+                           class="form-input" placeholder="+212 600 000 000">
+                    @error('phone')
+                        <span class="form-error">{{ $message }}</span>
+                    @enderror
+                </div>
 
-                        <!-- Submit Button -->
-                        <div class="flex justify-end space-x-3">
-                            <a href="{{ route('admin.users') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg">
-                                Cancel
-                            </a>
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
-                                Create User
-                            </button>
-                        </div>
-                    </form>
+                <div class="form-group">
+                    <label class="form-label">
+                        Role
+                        <span class="required">*</span>
+                    </label>
+                    <select name="role" required class="form-select">
+                        <option value="">Select Role</option>
+                        <option value="customer" {{ old('role') == 'customer' ? 'selected' : '' }}>Customer</option>
+                        <option value="chef" {{ old('role') == 'chef' ? 'selected' : '' }}>Chef</option>
+                        <option value="delivery" {{ old('role') == 'delivery' ? 'selected' : '' }}>Delivery</option>
+                        <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                    </select>
+                    @error('role')
+                        <span class="form-error">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label">Address</label>
+                    <textarea name="address" class="form-textarea" 
+                              placeholder="Enter full address">{{ old('address') }}</textarea>
+                    @error('address')
+                        <span class="form-error">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
         </div>
-    </div>
-</x-app-layout>
 
+        <div class="form-section">
+            <h3 class="section-title">Account Password</h3>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">
+                        Password
+                        <span class="required">*</span>
+                    </label>
+                    <input type="password" name="password" required 
+                           class="form-input" placeholder="••••••••">
+                    <span class="form-help">Minimum 8 characters</span>
+                    @error('password')
+                        <span class="form-error">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        Confirm Password
+                        <span class="required">*</span>
+                    </label>
+                    <input type="password" name="password_confirmation" required 
+                           class="form-input" placeholder="••••••••">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Create User
+            </button>
+            <a href="{{ route('admin.users') }}" class="btn-secondary">Cancel</a>
+        </div>
+    </div>
+</form>
+@endsection
