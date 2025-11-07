@@ -86,37 +86,51 @@
                             <div class="text-sm text-gray-500">
                                 @if($order->status === 'pending')
                                     <span class="flex items-center">
-                                        <span class="mr-2">📞</span>
+                                        <svg class="w-4 h-4 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
                                         Our staff will call you soon to confirm
                                     </span>
                                 @elseif($order->status === 'accepted')
                                     <span class="flex items-center">
-                                        <span class="mr-2">👨‍🍳</span>
+                                        <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
                                         Chef is preparing your order
                                     </span>
                                 @elseif($order->status === 'preparing')
                                     <span class="flex items-center">
-                                        <span class="mr-2">🍣</span>
+                                        <svg class="w-4 h-4 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                                        </svg>
                                         Your sushi is being prepared
                                     </span>
                                 @elseif($order->status === 'ready')
                                     <span class="flex items-center">
-                                        <span class="mr-2">✅</span>
+                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
                                         Order is ready for pickup/delivery
                                     </span>
                                 @elseif($order->status === 'out_for_delivery')
                                     <span class="flex items-center">
-                                        <span class="mr-2">🚚</span>
+                                        <svg class="w-4 h-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path>
+                                        </svg>
                                         Out for delivery
                                     </span>
                                 @elseif($order->status === 'delivered')
                                     <span class="flex items-center">
-                                        <span class="mr-2">🎉</span>
+                                        <svg class="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
                                         Delivered successfully
                                     </span>
                                 @elseif($order->status === 'cancelled')
                                     <span class="flex items-center">
-                                        <span class="mr-2">❌</span>
+                                        <svg class="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
                                         Order was cancelled
                                     </span>
                                 @endif
@@ -146,7 +160,9 @@
             @else
                 <!-- Empty State -->
                 <div class="text-center py-12">
-                    <div class="text-6xl mb-4">🍣</div>
+                    <svg class="w-24 h-24 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
                     <h3 class="text-xl font-semibold text-gray-900 mb-2">No orders yet</h3>
                     <p class="text-gray-600 mb-6">Start your sushi journey by placing your first order!</p>
                     <a href="{{ route('home') }}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">

@@ -4,18 +4,29 @@
         <div class="bg-white shadow-lg">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900">🚚 Live Delivery Tracking</h1>
-                        <p class="text-gray-600">Order #{{ $order->order_number }}</p>
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 mr-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path>
+                        </svg>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">Live Delivery Tracking</h1>
+                            <p class="text-gray-600">Order #{{ $order->order_number }}</p>
+                        </div>
                     </div>
                     <div class="flex items-center space-x-4">
                         <div class="text-right">
                             <div class="text-sm text-gray-500">Delivery Status</div>
-                            <div class="text-lg font-semibold text-blue-600">
+                            <div class="text-lg font-semibold text-blue-600 flex items-center">
                                 @if($order->status === 'out_for_delivery')
-                                    🚚 Out for Delivery
+                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path>
+                                    </svg>
+                                    Out for Delivery
                                 @elseif($order->status === 'delivered')
-                                    ✅ Delivered
+                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Delivered
                                 @endif
                             </div>
                         </div>
@@ -45,7 +56,12 @@
                                     </svg>
                                 </div>
                                 <div class="ml-3">
-                                    <h3 class="text-lg font-semibold text-red-800 mb-2">🗺️ Google Maps Setup Required</h3>
+                                    <h3 class="text-lg font-semibold text-red-800 mb-2 flex items-center">
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                                        </svg>
+                                        Google Maps Setup Required
+                                    </h3>
                                     <p class="text-red-700 mb-4">To enable live delivery tracking, you need to configure a Google Maps API key.</p>
                                     
                                     <div class="bg-white p-4 rounded border border-red-200 mb-4">
@@ -90,8 +106,10 @@
                         
                         @if($order->deliveryGuy)
                         <div class="flex items-center space-x-4 mb-4">
-                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                                <span class="text-xl">🚚</span>
+                            <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path>
+                                </svg>
                             </div>
                             <div>
                                 <h4 class="font-semibold text-gray-900">{{ $order->deliveryGuy->name }}</h4>
@@ -102,7 +120,10 @@
 
                         <div class="space-y-3">
                             <div class="flex items-center space-x-3">
-                                <span class="text-gray-500">📍</span>
+                                <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
                                 <div>
                                     <p class="font-medium text-gray-900">Delivery Address</p>
                                     <p class="text-sm text-gray-600">{{ $order->delivery_address }}</p>
@@ -110,7 +131,9 @@
                             </div>
                             
                             <div class="flex items-center space-x-3">
-                                <span class="text-gray-500">📞</span>
+                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                </svg>
                                 <div>
                                     <p class="font-medium text-gray-900">Contact</p>
                                     <p class="text-sm text-gray-600">{{ $order->phone }}</p>
@@ -214,10 +237,10 @@
 
                 this.directionsRenderer.setMap(this.map);
 
-                // Add customer marker using a more compatible approach
+                // Add customer marker using SVG icon
                 this.customerMarker = this.createCompatibleMarker(
                     this.customerLocation,
-                    '🏠',
+                    '<svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" stroke="none"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>',
                     '#10B981',
                     'Delivery Address'
                 );
@@ -281,10 +304,10 @@
 
             updateDeliveryLocation(location) {
                 if (!this.deliveryLocation) {
-                    // First location - create delivery marker using compatible approach
+                    // First location - create delivery marker using SVG icon
                     this.deliveryMarker = this.createCompatibleMarker(
                         location,
-                        '🚚',
+                        '<svg xmlns="http://www.w3.org/2000/svg" fill="white" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>',
                         '#3B82F6',
                         'Delivery Driver'
                     );

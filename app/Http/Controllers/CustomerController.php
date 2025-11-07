@@ -36,9 +36,10 @@ class CustomerController extends Controller
         $cartItems = [];
         $cartTotal = 0;
         
-        foreach ($cart as $productId => $quantity) {
+        foreach ($cart as $productId => $details) {
             $product = Product::find($productId);
-            if ($product) {
+            if ($product && isset($details['quantity'])) {
+                $quantity = $details['quantity'];
                 $cartItems[] = [
                     'product' => $product,
                     'quantity' => $quantity

@@ -19,7 +19,9 @@
                 <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
                     <div class="flex">
                         <div class="flex-shrink-0">
-                            <span class="text-2xl">🔴</span>
+                            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
                         </div>
                         <div class="ml-3">
                             <h3 class="text-lg font-semibold text-red-800">We're Currently Closed</h3>
@@ -44,8 +46,10 @@
                     <div class="space-y-4">
                         @foreach($cartItems as $item)
                         <div class="flex items-center space-x-4 py-3 border-b border-gray-200">
-                            <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <span class="text-2xl">🍣</span>
+                            <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
                             </div>
                             <div class="flex-1">
                                 <h3 class="font-medium text-gray-900">{{ $item['product']->name }}</h3>
@@ -108,11 +112,18 @@
                                 
                                 <!-- Location Buttons -->
                                 <div class="flex space-x-2">
-                                    <button type="button" id="use-current-location" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
-                                        📍 Use Current Location
+                                    <button type="button" id="use-current-location" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors inline-flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                        Use Current Location
                                     </button>
-                                    <button type="button" id="pick-on-map" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
-                                        🗺️ Pick on Map
+                                    <button type="button" id="pick-on-map" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors inline-flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                                        </svg>
+                                        Pick on Map
                                     </button>
                                 </div>
                                 
@@ -124,7 +135,13 @@
                                 <div id="map-container" class="hidden">
                                     <div class="bg-gray-50 p-3 rounded-lg border border-gray-300">
                                         <div class="flex items-center justify-between mb-2">
-                                            <h4 class="text-sm font-medium text-gray-700">📍 Select Delivery Location</h4>
+                                            <h4 class="text-sm font-medium text-gray-700 flex items-center">
+                                                <svg class="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                </svg>
+                                                Select Delivery Location
+                                            </h4>
                                             <button type="button" id="close-map" class="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
                                         </div>
                                         <div id="map" class="w-full h-48 border border-gray-300 rounded-md"></div>
@@ -133,7 +150,11 @@
                                             <div class="flex space-x-2 map-controls">
                                                 <button type="button" id="zoom-in" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs">+</button>
                                                 <button type="button" id="zoom-out" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs">-</button>
-                                                <button type="button" id="center-map" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs">📍</button>
+                                                <button type="button" id="center-map" class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs inline-flex items-center">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                    </svg>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -188,7 +209,9 @@
                                     type="submit" 
                                     class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
                                 >
-                                    <span class="mr-2">🍣</span>
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
                                     Confirm My Order
                                 </button>
                             @else
@@ -197,7 +220,9 @@
                                     disabled
                                     class="w-full bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg cursor-not-allowed flex items-center justify-center opacity-60"
                                 >
-                                    <span class="mr-2">🔴</span>
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
                                     Restaurant is Closed
                                 </button>
                             @endif
@@ -348,9 +373,9 @@
                     marker = L.marker([lat, lng], {
                         icon: L.divIcon({
                             className: 'custom-marker',
-                            html: '<div style="background-color: #3B82F6; color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">📍</div>',
-                            iconSize: [25, 25],
-                            iconAnchor: [12, 12]
+                            html: '<div style="background-color: #3B82F6; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"><svg style="width: 16px; height: 16px;" fill="white" stroke="none" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>',
+                            iconSize: [28, 28],
+                            iconAnchor: [14, 14]
                         })
                     }).addTo(map);
                     
